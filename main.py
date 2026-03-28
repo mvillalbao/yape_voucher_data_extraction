@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import gspread
+import base64
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -149,7 +150,7 @@ def ensure_processed_sheet(spreadsheet: gspread.Spreadsheet, sheet_name: str) ->
 
     current_headers = ws.row_values(1)
     if current_headers != PROCESSED_HEADERS:
-        ws.update("A1:Q1", [PROCESSED_HEADERS])
+        ws.update(values=[PROCESSED_HEADERS], range_name="A1:Q1")
 
     return ws
 
@@ -203,6 +204,8 @@ def build_prompt() -> str:
 
 def call_openai_extract(openai_client: OpenAI, model: str, image_bytes: bytes) -> tuple[VoucherExtraction, str]:
     # Structured outputs via Responses API + Pydantic schema.
+    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+    image_data_url = f"data:image/jpeg;base64,{image_b64}"
     response = openai_client.responses.parse(
         model=model,
         input=[
@@ -210,7 +213,7 @@ def call_openai_extract(openai_client: OpenAI, model: str, image_bytes: bytes) -
                 "role": "user",
                 "content": [
                     {"type": "input_text", "text": build_prompt()},
-                    {"type": "input_image", "image_bytes": image_bytes},
+                    {"type": "input_image", "image_url": image_data_url},
                 ],
             }
         ],
@@ -281,8 +284,8 @@ def process_one_row(
     openai_model: str,
 ) -> list[str] | None:
     timestamp = row.get("timestamp", "")
-    drive_link = row.get("comprobante_yape", "")
-    email = row.get("email", "")
+    drive_link = row.get("comprobante yape", "")
+    email = row.get("email address", "")
     raw_row_number = row.get("_raw_row_number", "")
 
     submission_id = make_submission_id(timestamp, drive_link, email)
