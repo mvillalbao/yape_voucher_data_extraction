@@ -48,6 +48,7 @@ PROCESSED_HEADERS = [
 
 DRIVE_ID_PATTERNS = [
     re.compile(r"/d/([a-zA-Z0-9_-]+)"),
+    re.compile(r"/file/d/([a-zA-Z0-9_-]+)"),
     re.compile(r"[?&]id=([a-zA-Z0-9_-]+)"),
 ]
 
@@ -172,11 +173,31 @@ def get_existing_submission_ids(processed_ws: gspread.Worksheet) -> set[str]:
 
 
 def extract_drive_file_id(drive_link: str) -> str:
-    for pattern in DRIVE_ID_PATTERNS:
-        match = pattern.search(drive_link)
-        if match:
-            return match.group(1)
-    raise ValueError("Could not extract Google Drive file ID from link.")
+    if not drive_link:
+        raise ValueError("Drive link is empty.")
+
+    raw_value = drive_link.strip()
+
+    # Handle formula style values, e.g. =HYPERLINK("https://...","label")
+    formula_match = re.search(r'"(https?://[^"]+)"', raw_value)
+    if formula_match:
+        raw_value = formula_match.group(1)
+
+    # Some form responses can contain multiple links separated by comma/space/newline.
+    candidates = [part.strip() for part in re.split(r"[,\s]+", raw_value) if part.strip()]
+    if not candidates:
+        candidates = [raw_value]
+
+    for candidate in candidates:
+        for pattern in DRIVE_ID_PATTERNS:
+            match = pattern.search(candidate)
+            if match:
+                return match.group(1)
+
+    raise ValueError(
+        "Could not extract Google Drive file ID from link. "
+        f"Received value: {drive_link}"
+    )
 
 
 def download_drive_file_bytes(drive_client: Any, file_id: str) -> bytes:
