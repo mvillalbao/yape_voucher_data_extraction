@@ -1,11 +1,10 @@
-"""Process new Yape voucher submissions from Google Sheets into a structured 'processed data' tab.
+"""Process new Yape voucher submissions into a structured 'processed data' tab.
 
-This script is intentionally written in a simple, function-based style for easy maintenance.
+Simple, function-based implementation for easy maintenance.
 """
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import io
 import json
@@ -21,9 +20,12 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from openai import OpenAI
+from pydantic import BaseModel, ConfigDict, Field
 
 
 REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante_yape", "email"]
+DEFAULT_OPENAI_MODEL = "gpt-5-mini"
+
 PROCESSED_HEADERS = [
     "submission_id",
     "raw_row_number",
@@ -44,15 +46,6 @@ PROCESSED_HEADERS = [
     "raw_openai_json",
 ]
 
-JSON_KEYS = {
-    "operation_number": "extracted_operation_number",
-    "amount": "extracted_amount",
-    "currency": "extracted_currency",
-    "date": "extracted_date",
-    "time": "extracted_time",
-    "phone_or_recipient": "extracted_phone_or_recipient",
-}
-
 DRIVE_ID_PATTERNS = [
     re.compile(r"/d/([a-zA-Z0-9_-]+)"),
     re.compile(r"[?&]id=([a-zA-Z0-9_-]+)"),
@@ -63,11 +56,21 @@ class ConfigError(Exception):
     """Raised when required configuration is missing."""
 
 
+class VoucherExtraction(BaseModel):
+    """Structured extraction schema returned by the model."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    operation_number: str | None = Field(default=None)
+    amount: str | None = Field(default=None)
+    currency: str | None = Field(default=None)
+    date: str | None = Field(default=None)
+    time: str | None = Field(default=None)
+    phone_or_recipient: str | None = Field(default=None)
+
+
 def configure_logging() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(message)s",
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 
 
 def get_env(name: str) -> str:
@@ -75,6 +78,11 @@ def get_env(name: str) -> str:
     if not value:
         raise ConfigError(f"Missing required environment variable: {name}")
     return value
+
+
+def get_env_optional(name: str, default: str) -> str:
+    value = os.getenv(name, "").strip()
+    return value or default
 
 
 def load_config() -> dict[str, str]:
@@ -85,7 +93,7 @@ def load_config() -> dict[str, str]:
         "raw_sheet_name": get_env("RAW_SHEET_NAME"),
         "processed_sheet_name": get_env("PROCESSED_SHEET_NAME"),
         "service_account_file": get_env("GOOGLE_SERVICE_ACCOUNT_FILE"),
-        "openai_model": get_env("OPENAI_MODEL"),
+        "openai_model": get_env_optional("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
     }
 
 
@@ -104,7 +112,7 @@ def normalize_header(header: str) -> str:
     return header.strip().lower()
 
 
-def get_raw_rows(raw_ws: gspread.Worksheet) -> tuple[list[str], list[dict[str, str]]]:
+def get_raw_rows(raw_ws: gspread.Worksheet) -> list[dict[str, str]]:
     values = raw_ws.get_all_values()
     if not values:
         raise ValueError("Raw sheet is empty.")
@@ -123,7 +131,7 @@ def get_raw_rows(raw_ws: gspread.Worksheet) -> tuple[list[str], list[dict[str, s
         row_map["_raw_row_number"] = str(row_num)
         rows.append(row_map)
 
-    return norm_headers, rows
+    return rows
 
 
 def make_submission_id(timestamp: str, drive_link: str, email: str) -> str:
@@ -160,6 +168,7 @@ def get_existing_submission_ids(processed_ws: gspread.Worksheet) -> set[str]:
     for row in values[1:]:
         if idx < len(row) and row[idx].strip():
             existing_ids.add(row[idx].strip())
+
     return existing_ids
 
 
@@ -184,68 +193,40 @@ def download_drive_file_bytes(drive_client: Any, file_id: str) -> bytes:
     return buffer.read()
 
 
-def guess_mime_type(drive_link: str) -> str:
-    lower = drive_link.lower()
-    if ".png" in lower:
-        return "image/png"
-    if ".webp" in lower:
-        return "image/webp"
-    return "image/jpeg"
-
-
 def build_prompt() -> str:
     return (
-        "Extract voucher fields from this Yape payment receipt image. "
-        "Return STRICT JSON only with these keys: "
-        "operation_number, amount, currency, date, time, phone_or_recipient. "
-        "Use null for missing values. Do not include any extra text."
+        "Extract data from this Yape voucher image. "
+        "If a field is missing or unclear, return null."
     )
 
 
-def parse_model_json(text: str) -> dict[str, Any]:
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        stripped = stripped.strip("`")
-        stripped = stripped.replace("json", "", 1).strip()
-
-    try:
-        data = json.loads(stripped)
-        if isinstance(data, dict):
-            return data
-    except json.JSONDecodeError:
-        pass
-
-    start = stripped.find("{")
-    end = stripped.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        chunk = stripped[start : end + 1]
-        data = json.loads(chunk)
-        if isinstance(data, dict):
-            return data
-
-    raise ValueError("OpenAI response was not valid JSON object.")
-
-
-def call_openai_extract(openai_client: OpenAI, model: str, image_bytes: bytes, mime_type: str) -> tuple[dict[str, Any], str]:
-    b64 = base64.b64encode(image_bytes).decode("utf-8")
-    data_url = f"data:{mime_type};base64,{b64}"
-
-    response = openai_client.responses.create(
+def call_openai_extract(openai_client: OpenAI, model: str, image_bytes: bytes) -> tuple[VoucherExtraction, str]:
+    # Structured outputs via Responses API + Pydantic schema.
+    response = openai_client.responses.parse(
         model=model,
         input=[
             {
                 "role": "user",
                 "content": [
                     {"type": "input_text", "text": build_prompt()},
-                    {"type": "input_image", "image_url": data_url},
+                    {"type": "input_image", "image_bytes": image_bytes},
                 ],
             }
         ],
+        text_format=VoucherExtraction,
     )
 
-    raw_text = response.output_text or ""
-    parsed = parse_model_json(raw_text)
-    return parsed, raw_text
+    parsed = response.output_parsed
+    if parsed is None:
+        raise ValueError("Model returned no structured output.")
+
+    if isinstance(parsed, VoucherExtraction):
+        schema_result = parsed
+    else:
+        schema_result = VoucherExtraction.model_validate(parsed)
+
+    raw_json = json.dumps(schema_result.model_dump(), ensure_ascii=False)
+    return schema_result, raw_json
 
 
 def now_utc_iso() -> str:
@@ -264,9 +245,9 @@ def row_from_result(
     status: str,
     error_message: str,
     raw_openai_json: str,
-    extracted: dict[str, Any] | None = None,
+    extracted: VoucherExtraction | None = None,
 ) -> list[str]:
-    extracted = extracted or {}
+    extracted = extracted or VoucherExtraction()
 
     result_map = {col: "" for col in PROCESSED_HEADERS}
     result_map["submission_id"] = submission_id
@@ -275,15 +256,17 @@ def row_from_result(
     result_map["uploader_email"] = email
     result_map["voucher_drive_link"] = drive_link
     result_map["voucher_drive_file_id"] = drive_file_id
+    result_map["extracted_operation_number"] = extracted.operation_number or ""
+    result_map["extracted_amount"] = extracted.amount or ""
+    result_map["extracted_currency"] = extracted.currency or ""
+    result_map["extracted_date"] = extracted.date or ""
+    result_map["extracted_time"] = extracted.time or ""
+    result_map["extracted_phone_or_recipient"] = extracted.phone_or_recipient or ""
     result_map["openai_model"] = openai_model
     result_map["processed_at_utc"] = now_utc_iso()
     result_map["status"] = status
     result_map["error_message"] = error_message
     result_map["raw_openai_json"] = raw_openai_json
-
-    for json_key, column_name in JSON_KEYS.items():
-        value = extracted.get(json_key)
-        result_map[column_name] = "" if value is None else str(value)
 
     return [result_map[h] for h in PROCESSED_HEADERS]
 
@@ -308,8 +291,7 @@ def process_one_row(
     try:
         file_id = extract_drive_file_id(drive_link)
         image_bytes = download_drive_file_bytes(drive_client, file_id)
-        mime_type = guess_mime_type(drive_link)
-        extracted, raw_openai_json = call_openai_extract(openai_client, openai_model, image_bytes, mime_type)
+        extracted, raw_openai_json = call_openai_extract(openai_client, openai_model, image_bytes)
 
         return row_from_result(
             submission_id=submission_id,
@@ -354,11 +336,11 @@ def main() -> None:
     raw_ws = spreadsheet.worksheet(config["raw_sheet_name"])
     processed_ws = ensure_processed_sheet(spreadsheet, config["processed_sheet_name"])
 
-    _, raw_rows = get_raw_rows(raw_ws)
+    raw_rows = get_raw_rows(raw_ws)
     existing_ids = get_existing_submission_ids(processed_ws)
     openai_client = OpenAI(api_key=config["openai_api_key"])
 
-    to_append: list[list[str]] = []
+    rows_to_append: list[list[str]] = []
 
     logging.info("Raw rows found: %s", len(raw_rows))
     logging.info("Already processed IDs: %s", len(existing_ids))
@@ -372,12 +354,12 @@ def main() -> None:
             openai_model=config["openai_model"],
         )
         if result_row is not None:
-            to_append.append(result_row)
+            rows_to_append.append(result_row)
             existing_ids.add(result_row[0])
 
-    if to_append:
-        processed_ws.append_rows(to_append, value_input_option="RAW")
-        logging.info("Appended %s new rows into '%s'.", len(to_append), config["processed_sheet_name"])
+    if rows_to_append:
+        processed_ws.append_rows(rows_to_append, value_input_option="RAW")
+        logging.info("Appended %s new rows into '%s'.", len(rows_to_append), config["processed_sheet_name"])
     else:
         logging.info("No new submissions to process.")
 
