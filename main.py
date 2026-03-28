@@ -23,7 +23,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field
 
 
-REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante_yape", "email"]
+REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante yape", "email address"]
 DEFAULT_OPENAI_MODEL = "gpt-5-mini"
 
 PROCESSED_HEADERS = [
@@ -48,6 +48,7 @@ PROCESSED_HEADERS = [
 
 DRIVE_ID_PATTERNS = [
     re.compile(r"/d/([a-zA-Z0-9_-]+)"),
+    re.compile(r"/file/d/([a-zA-Z0-9_-]+)"),
     re.compile(r"[?&]id=([a-zA-Z0-9_-]+)"),
 ]
 
