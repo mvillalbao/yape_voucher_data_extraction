@@ -27,7 +27,7 @@ REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante_yape", "email"]
 RAW_COLUMN_ALIASES = {
     "timestamp": ["timestamp", "marca temporal"],
     "comprobante_yape": ["comprobante_yape", "comprobante yape"],
-    "email": ["email", "correo electrónico", "correo electronico"],
+    "email": ["email", "email address", "correo electrónico", "correo electronico"],
 }
 DEFAULT_OPENAI_MODEL = "gpt-5-mini"
 
