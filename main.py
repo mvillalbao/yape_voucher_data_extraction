@@ -23,12 +23,7 @@ from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field
 
 
-REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante_yape", "email"]
-RAW_COLUMN_ALIASES = {
-    "timestamp": ["timestamp", "marca temporal"],
-    "comprobante_yape": ["comprobante_yape", "comprobante yape"],
-    "email": ["email", "email address", "correo electrónico", "correo electronico"],
-}
+REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante yape", "email address"]
 DEFAULT_OPENAI_MODEL = "gpt-5-mini"
 
 PROCESSED_HEADERS = [
@@ -124,30 +119,14 @@ def get_raw_rows(raw_ws: gspread.Worksheet) -> list[dict[str, str]]:
 
     headers = values[0]
     norm_headers = [normalize_header(h) for h in headers]
-    canonical_to_index: dict[str, int] = {}
-
     for required in REQUIRED_RAW_COLUMNS:
-        aliases = RAW_COLUMN_ALIASES.get(required, [required])
-        found_index = None
-        for alias in aliases:
-            alias_norm = normalize_header(alias)
-            if alias_norm in norm_headers:
-                found_index = norm_headers.index(alias_norm)
-                break
-        if found_index is None:
-            raise ValueError(
-                f"Raw sheet missing required column: {required}. "
-                f"Accepted names: {aliases}. "
-                f"Detected headers: {headers}"
-            )
-        canonical_to_index[required] = found_index
+        if required not in norm_headers:
+            raise ValueError(f"Raw sheet missing required column: {required}. Detected headers: {headers}")
 
     rows: list[dict[str, str]] = []
     for row_num, row in enumerate(values[1:], start=2):
         row_padded = row + [""] * (len(headers) - len(row))
         row_map = {normalize_header(headers[i]): row_padded[i].strip() for i in range(len(headers))}
-        for canonical_name, idx in canonical_to_index.items():
-            row_map[canonical_name] = row_padded[idx].strip()
         row_map["_raw_row_number"] = str(row_num)
         rows.append(row_map)
 
@@ -300,8 +279,8 @@ def process_one_row(
     openai_model: str,
 ) -> list[str] | None:
     timestamp = row.get("timestamp", "")
-    drive_link = row.get("comprobante_yape", "")
-    email = row.get("email", "")
+    drive_link = row.get("comprobante yape", "")
+    email = row.get("email address", "")
     raw_row_number = row.get("_raw_row_number", "")
 
     submission_id = make_submission_id(timestamp, drive_link, email)
