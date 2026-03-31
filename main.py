@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import io
+import json
 import logging
 import os
 import random
@@ -24,6 +25,11 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field
+
+try:
+    import streamlit as st
+except Exception:
+    st = None
 
 
 REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante yape", "email address"]
@@ -101,7 +107,8 @@ class AppConfig:
     spreadsheet_id: str
     raw_sheet_name: str
     processed_sheet_name: str
-    service_account_file: str
+    service_account_file: str | None
+    service_account_json: str | None
     openai_model: str
     max_workers: int
     openai_timeout_seconds: int
@@ -227,19 +234,19 @@ def configure_logging() -> None:
 
 
 def get_env(name: str) -> str:
-    value = os.getenv(name, "").strip()
+    value = get_secret(name).strip()
     if not value:
         raise ConfigError(f"Missing required environment variable: {name}")
     return value
 
 
 def get_env_optional(name: str, default: str) -> str:
-    value = os.getenv(name, "").strip()
+    value = get_secret(name).strip()
     return value or default
 
 
 def get_env_int(name: str, default: int, *, minimum: int = 1) -> int:
-    raw_value = os.getenv(name, "").strip()
+    raw_value = get_secret(name).strip()
     if not raw_value:
         return default
 
@@ -254,6 +261,22 @@ def get_env_int(name: str, default: int, *, minimum: int = 1) -> int:
     return parsed
 
 
+def get_secret(name: str) -> str:
+    env_value = os.getenv(name)
+    if env_value is not None:
+        return str(env_value)
+
+    if st is not None:
+        try:
+            secret_value = st.secrets.get(name)
+        except Exception:
+            secret_value = None
+        if secret_value is not None:
+            return str(secret_value)
+
+    return ""
+
+
 def load_config() -> AppConfig:
     load_dotenv()
     return AppConfig(
@@ -261,7 +284,8 @@ def load_config() -> AppConfig:
         spreadsheet_id=get_env("SPREADSHEET_ID"),
         raw_sheet_name=get_env("RAW_SHEET_NAME"),
         processed_sheet_name=get_env("PROCESSED_SHEET_NAME"),
-        service_account_file=get_env("GOOGLE_SERVICE_ACCOUNT_FILE"),
+        service_account_file=get_env_optional("GOOGLE_SERVICE_ACCOUNT_FILE", "") or None,
+        service_account_json=get_env_optional("GOOGLE_SERVICE_ACCOUNT_JSON", "") or None,
         openai_model=get_env_optional("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
         max_workers=get_env_int("MAX_WORKERS", DEFAULT_MAX_WORKERS),
         openai_timeout_seconds=get_env_int(
@@ -275,12 +299,28 @@ def load_config() -> AppConfig:
     )
 
 
-def build_google_credentials(service_account_file: str) -> Credentials:
+def build_google_credentials(
+    *,
+    service_account_file: str | None,
+    service_account_json: str | None,
+) -> Credentials:
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive.readonly",
     ]
-    return Credentials.from_service_account_file(service_account_file, scopes=scopes)
+    if service_account_json:
+        try:
+            service_account_info = json.loads(service_account_json)
+        except json.JSONDecodeError as exc:
+            raise ConfigError("GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON.") from exc
+        return Credentials.from_service_account_info(service_account_info, scopes=scopes)
+
+    if service_account_file:
+        return Credentials.from_service_account_file(service_account_file, scopes=scopes)
+
+    raise ConfigError(
+        "Missing Google credentials. Set GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_FILE."
+    )
 
 
 def get_sheets_client(credentials: Credentials) -> gspread.Client:
@@ -292,7 +332,10 @@ def get_worker_clients(config: AppConfig) -> tuple[Any, OpenAI]:
     openai_client = getattr(_THREAD_CONTEXT, "openai_client", None)
 
     if drive_client is None:
-        creds = build_google_credentials(config.service_account_file)
+        creds = build_google_credentials(
+            service_account_file=config.service_account_file,
+            service_account_json=config.service_account_json,
+        )
         drive_client = build("drive", "v3", credentials=creds)
         _THREAD_CONTEXT.drive_client = drive_client
 
@@ -881,7 +924,10 @@ def run_update() -> UpdateSummary:
     configure_logging()
     config = load_config()
 
-    credentials = build_google_credentials(config.service_account_file)
+    credentials = build_google_credentials(
+        service_account_file=config.service_account_file,
+        service_account_json=config.service_account_json,
+    )
     sheets_client = get_sheets_client(credentials)
     spreadsheet = sheets_client.open_by_key(config.spreadsheet_id)
 
