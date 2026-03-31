@@ -142,6 +142,19 @@ class OpenAIUsage:
     retry_count: int = 0
 
 
+@dataclass(frozen=True)
+class UpdateSummary:
+    raw_rows_found: int
+    already_processed_submissions: int
+    already_processed_drive_file_ids: int
+    already_processed_operation_numbers: int
+    pending_submissions: int
+    appended_rows: int
+    processed_sheet_name: str
+    openai_model: str
+    max_workers: int
+
+
 class VoucherExtraction(BaseModel):
     """Structured voucher data returned by the model."""
 
@@ -864,7 +877,7 @@ def sort_rows_for_append(rows: list[list[str]]) -> list[list[str]]:
     return sorted(rows, key=sort_key)
 
 
-def main() -> None:
+def run_update() -> UpdateSummary:
     configure_logging()
     config = load_config()
 
@@ -899,7 +912,17 @@ def main() -> None:
 
     if not pending_submissions:
         logging.info("No new submissions to process.")
-        return
+        return UpdateSummary(
+            raw_rows_found=len(raw_rows),
+            already_processed_submissions=len(existing_ids),
+            already_processed_drive_file_ids=len(existing_drive_file_ids),
+            already_processed_operation_numbers=len(existing_operation_numbers),
+            pending_submissions=len(pending_submissions),
+            appended_rows=0,
+            processed_sheet_name=config.processed_sheet_name,
+            openai_model=config.openai_model,
+            max_workers=config.max_workers,
+        )
 
     rows_to_append = process_submissions_in_parallel(
         pending_submissions,
@@ -908,7 +931,17 @@ def main() -> None:
     )
     if not rows_to_append:
         logging.info("No rows remained after parallel dedupe filtering.")
-        return
+        return UpdateSummary(
+            raw_rows_found=len(raw_rows),
+            already_processed_submissions=len(existing_ids),
+            already_processed_drive_file_ids=len(existing_drive_file_ids),
+            already_processed_operation_numbers=len(existing_operation_numbers),
+            pending_submissions=len(pending_submissions),
+            appended_rows=0,
+            processed_sheet_name=config.processed_sheet_name,
+            openai_model=config.openai_model,
+            max_workers=config.max_workers,
+        )
 
     rows_to_append = sort_rows_for_append(rows_to_append)
     processed_ws.append_rows(rows_to_append, value_input_option="RAW")
@@ -917,6 +950,21 @@ def main() -> None:
         len(rows_to_append),
         config.processed_sheet_name,
     )
+    return UpdateSummary(
+        raw_rows_found=len(raw_rows),
+        already_processed_submissions=len(existing_ids),
+        already_processed_drive_file_ids=len(existing_drive_file_ids),
+        already_processed_operation_numbers=len(existing_operation_numbers),
+        pending_submissions=len(pending_submissions),
+        appended_rows=len(rows_to_append),
+        processed_sheet_name=config.processed_sheet_name,
+        openai_model=config.openai_model,
+        max_workers=config.max_workers,
+    )
+
+
+def main() -> None:
+    run_update()
 
 
 if __name__ == "__main__":
