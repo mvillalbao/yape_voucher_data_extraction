@@ -9,3 +9,5 @@ service_account.json
 # Virtual environments
 .venv/
 venv/
+
+voucher_processing.log
