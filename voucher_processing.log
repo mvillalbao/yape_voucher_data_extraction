@@ -2140,3 +2140,589 @@
 2026-03-30 19:43:41,266 | INFO | ThreadPoolExecutor-0_81 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
 2026-03-30 19:43:41,431 | INFO | MainThread | Completed raw row 26 with status 'ok'.
 2026-03-30 19:43:42,078 | INFO | MainThread | Appended 100 processed rows into 'processed data'.
+2026-03-31 00:58:04,574 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1HmYE2RPBlvhOep2c36MxIopQKGt2YE17 from raw row 2.
+2026-03-31 00:58:04,586 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1z0YNXkfpNP0YnJ7vwJLhTR__EHour3b2 from raw row 3.
+2026-03-31 00:58:04,587 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1j4ZTSIMHV6mgHa1d8aDGW8ZJX2V-oxZJ from raw row 4.
+2026-03-31 00:58:04,587 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1H8jSnkFRyodArTCthCUM0x-bRKgFc_ev from raw row 5.
+2026-03-31 00:58:04,588 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1K0sufFO8OIa3QRdZKi3oJO8AJDOJOyNl from raw row 6.
+2026-03-31 00:58:04,588 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1SiOg1KPREYFrNpzL1WpaSjhdd2Gt3yjZ from raw row 7.
+2026-03-31 00:58:04,589 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KW-qRDjDcQ40XnwOmvUXDm1d2UfBge3F from raw row 8.
+2026-03-31 00:58:04,589 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1zYIGES2nVeCVLlzRecF7dpSWo9UjjQLj from raw row 8.
+2026-03-31 00:58:04,591 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZytB2xziuPp8Tr_tWnsfDIUsDDdXFrvf from raw row 8.
+2026-03-31 00:58:04,591 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1SeycN1TXlPODCssLpb4_OwtsD3Q_vqzA from raw row 8.
+2026-03-31 00:58:04,592 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 114Djf9YV8hVBuTPiChCAU2dlB8pw_TpQ from raw row 8.
+2026-03-31 00:58:04,592 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1_9-ja9w_1heacHivzIp1vXiuAlnVDBqJ from raw row 9.
+2026-03-31 00:58:04,593 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1PhHpKMDoqXysz-XJr5Ws49KyuhprQSaO from raw row 9.
+2026-03-31 00:58:04,594 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1LtLll0XLRYwcs27GkpDVU2EldhT7aEzT from raw row 9.
+2026-03-31 00:58:04,594 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1a58CnOIyGDbgv-bEmepK5o2BLL3CVe5- from raw row 9.
+2026-03-31 00:58:04,595 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1K2DIJy7G0F3hE16OkPnOApa0Lrqe0QeY from raw row 9.
+2026-03-31 00:58:04,595 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1mwGiqaB7cEiVnhomFJWh_vypiSlAWoOM from raw row 9.
+2026-03-31 00:58:04,596 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1-kTUsBFs7DWaDX5JO1xl9uqEXiy33PqX from raw row 9.
+2026-03-31 00:58:04,596 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1byBhVGPvfz-Jkjxc0yChKgsidKzMMnsM from raw row 9.
+2026-03-31 00:58:04,597 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1vEvul0t51InFR1tKdCArW9Egh5jFRgBq from raw row 9.
+2026-03-31 00:58:04,598 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1aTWU6SbFV9KG2ziotklXPhrGt30GfKNC from raw row 9.
+2026-03-31 00:58:04,598 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hU7s0QjUBI-Va_pwOiFqx5k5BWJgtcF6 from raw row 10.
+2026-03-31 00:58:04,599 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1R1FEr3OeFwbZofa1R3GzwNK2QYRDDiZG from raw row 10.
+2026-03-31 00:58:04,599 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KlckG2La4HuQbKRW0b6CNGeE0Q_wNgBw from raw row 10.
+2026-03-31 00:58:04,599 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cxNwlLio3k_SEOyfPFv8_yPJgi-QMy5K from raw row 10.
+2026-03-31 00:58:04,599 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1BjK8StekVZJzVXH9yf4WCoWyL1-gVYnm from raw row 10.
+2026-03-31 00:58:04,601 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1MNyqjR8xKOMMu4P2qraZiardFkGzscCu from raw row 10.
+2026-03-31 00:58:04,601 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Ga6OwU7zQG0sWV3vGDqGjKXEyOJ-liNC from raw row 10.
+2026-03-31 00:58:04,602 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 10QHIjX3ETSZZR-b4V7CuzH_hCUrGylvN from raw row 10.
+2026-03-31 00:58:04,602 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1vaq44S0SjP_KMcfZVQ76jLQqXa4bR5vP from raw row 10.
+2026-03-31 00:58:04,603 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZYmFEwtNAvXymqJSWhrR4LC6Fsijxm4C from raw row 10.
+2026-03-31 00:58:04,603 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1iJXSPVKleHADMlhQTvIGNFHZm4w9hrOB from raw row 11.
+2026-03-31 00:58:04,604 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1nHq0Vz3oInUDtBhK_UvLWTjPfjLGW3v6 from raw row 11.
+2026-03-31 00:58:04,604 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VJ2hkIdPozu1y7SsZF7Y54mGGlgizeqN from raw row 11.
+2026-03-31 00:58:04,605 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1IKCUzyfgS5N0c3CkaEi1-k-zKY_mrKlG from raw row 11.
+2026-03-31 00:58:04,605 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Mxr9BYmRGXUV4MoZ7vKRlofap_08hIZn from raw row 11.
+2026-03-31 00:58:04,605 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1W0TVwk6zUkqYPHaiNfWEe2--L82VPnEC from raw row 11.
+2026-03-31 00:58:04,607 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19ZTJYagMQ6tWAqdAIpwR9tsh4kncH1Om from raw row 11.
+2026-03-31 00:58:04,607 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 142Sc1HlN5zC7eEp74_MRu6TeVBDa5-gs from raw row 11.
+2026-03-31 00:58:04,608 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19FrhWw9xeSzND-QGIR80usXBugWKdVbX from raw row 11.
+2026-03-31 00:58:04,608 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1bV2JLwmZe4x5WjaXNK2952u4t7PLcEwo from raw row 11.
+2026-03-31 00:58:04,609 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Fk9E7YVYKq8tNeIK-2BwkPArhW1-iqWw from raw row 12.
+2026-03-31 00:58:04,609 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1rUvwBbMKnPkuXDW8HLcI8SPrrKu0dttH from raw row 12.
+2026-03-31 00:58:04,610 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1fRiovczhzZ6_Ss3ScL-7gk3SDTsSPsqj from raw row 12.
+2026-03-31 00:58:04,610 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KgR8pA5cXa-EXDRe9qly-LSN_RrPW2rb from raw row 12.
+2026-03-31 00:58:04,611 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1oDpUoHrsghubuGn6o-nn0rk36iQelJDf from raw row 12.
+2026-03-31 00:58:04,611 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1_4rhF4YCRG9R66pd4Uh1OmpWTSwcKPNy from raw row 12.
+2026-03-31 00:58:04,612 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1-xfgbgCkVriefp1qvmXgCaaxjRuvr9fO from raw row 12.
+2026-03-31 00:58:04,613 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 10_8Ci7gvVQ5Hv-sm_0RIhI0n8_1Vmbx0 from raw row 12.
+2026-03-31 00:58:04,613 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1C65kNnWv-G1a_UFECJPZDsTwYJVKBHro from raw row 12.
+2026-03-31 00:58:04,614 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1w_7eLHJTyJ5yAtyAX8Mu4wCUTBHL2HwK from raw row 12.
+2026-03-31 00:58:04,615 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1WsK87tid7wokVOrTfLuHOUwxbR0efcTO from raw row 13.
+2026-03-31 00:58:04,615 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19AHRJGR_2QcaDkrWbfo352TzQA6z_gsr from raw row 13.
+2026-03-31 00:58:04,615 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1unA8S91eYdA_RAbWn1qQoE_SA6-giFAZ from raw row 13.
+2026-03-31 00:58:04,616 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1sr1CpM0r3TsIMEufvGelfeYLg4mG1-z9 from raw row 13.
+2026-03-31 00:58:04,617 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KvHF56650VuM4vuRfxKsQGWEkRp-fMZu from raw row 13.
+2026-03-31 00:58:04,617 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1gFEnMfe09BOh8kA7byTGXmxHoKtppD0S from raw row 13.
+2026-03-31 00:58:04,618 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1_Gma-WDfsJXj5FGtthjLB3CHpqZjjobs from raw row 13.
+2026-03-31 00:58:04,619 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1p_VFIVG5pDrs31v9QH_YtvSRI7_qfDRn from raw row 13.
+2026-03-31 00:58:04,619 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1bvgGOMcp22Xxyaz5zOBKNHk6HGpRC_Ra from raw row 13.
+2026-03-31 00:58:04,620 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1xbeDgosGsdNCJZzHx4cCZ4CSHPSFBvad from raw row 13.
+2026-03-31 00:58:04,620 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 18OqyE-i4cm9j5liK9wdBiCZOTTAQb4ta from raw row 14.
+2026-03-31 00:58:04,621 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 14eBT-8wqh5SPSKK50pSeFCvYx1h0ExlM from raw row 14.
+2026-03-31 00:58:04,621 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1NnwFR4BWLEwSkqmFiNUQ0iXo4W5uhp4Y from raw row 14.
+2026-03-31 00:58:04,622 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1k8AwgQc_jOsG3ksgOYrxjHCsG7l-IjaX from raw row 14.
+2026-03-31 00:58:04,622 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 11C5GlKMvVa0LbZI2uUYjdtfBjllWz_zO from raw row 14.
+2026-03-31 00:58:04,623 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16yg3rFLvTTpzXcBnDAxOz2gwB-De-mE2 from raw row 14.
+2026-03-31 00:58:04,623 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1AdP5n7iyjxpTDigdDZ-d074-i3y7fqz0 from raw row 14.
+2026-03-31 00:58:04,623 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1fo7ICIf9PoUy-muhjHsMNw219K8NDQel from raw row 14.
+2026-03-31 00:58:04,623 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hZf3CdyzyY9HJCsmstW2WEKwyb8O1A2f from raw row 14.
+2026-03-31 00:58:04,624 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZVMVs45MDKIBj5w7ASqijuNQKsDS9wih from raw row 14.
+2026-03-31 00:58:04,625 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VJzDulII_8TRNxD8HGgCBzYWpWFnyq10 from raw row 15.
+2026-03-31 00:58:04,626 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1fk020mmjB4Eb0KDTENQrN1lz1I2MBPja from raw row 15.
+2026-03-31 00:58:04,626 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 15tSQqXkaQP3XUFl5_LYw0IdtxuEouYTX from raw row 15.
+2026-03-31 00:58:04,627 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1JOh2psg9s-pKwb4aFj_jEejaQUcQ3I16 from raw row 15.
+2026-03-31 00:58:04,627 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16KiLXap6gI0hJcOeZjRxpWuPfGtjDvls from raw row 15.
+2026-03-31 00:58:04,628 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 131K-fTT1kRLLVZyZGqjxy82cR8y_3gJB from raw row 15.
+2026-03-31 00:58:04,629 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hTm7EXR_8wOheNfQ0-Qn4v7F_atWLedl from raw row 15.
+2026-03-31 00:58:04,629 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cW1Sqyx340saIQUaId07D4qYLI2E3a6m from raw row 15.
+2026-03-31 00:58:04,629 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cgCiEnNNHsDI3L0ME4Wnu4BocNxyv5UH from raw row 15.
+2026-03-31 00:58:04,631 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1poxq4r83lsS3KaoRJ-80E0wqFSwSZTgL from raw row 15.
+2026-03-31 00:58:04,631 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1K9zqMKTd9s69M-lFLrd-eFtkECc1NgYU from raw row 16.
+2026-03-31 00:58:04,632 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1wcgX_YYusEQYwXqp1tVQvZiAJ25lUn6L from raw row 16.
+2026-03-31 00:58:04,633 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16p13MVv98ZtUP39HObuvECcjOLb6zR3J from raw row 16.
+2026-03-31 00:58:04,633 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1MX03Imu6lBXbcuwf6Uv29BbzpOhzdTqz from raw row 17.
+2026-03-31 00:58:04,634 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 15XBubsHCAiXgg3foI2L499J4CKURJcIU from raw row 17.
+2026-03-31 00:58:04,635 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 15NvANx9UhhYxqEO-aarFpI86vyksu6Kt from raw row 18.
+2026-03-31 00:58:04,635 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 12QHh49nexPdxkQy_4GZaIItnIrDzZ6uP from raw row 18.
+2026-03-31 00:58:04,636 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16wHb0ZoFUbjw-Pdr77f7c7fIJOHvddDe from raw row 18.
+2026-03-31 00:58:04,637 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1bHN8lKV9Ol9S2rfHQKVbdoPyUSlGvp_Y from raw row 18.
+2026-03-31 00:58:04,637 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1izDkUgQgPQAcabgBjgdhQlzGamx2Mtmj from raw row 18.
+2026-03-31 00:58:04,638 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1vMDfVWsvg41-eslJIWzWYKSZJUI3SWUW from raw row 18.
+2026-03-31 00:58:04,638 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1tvmV_NRNY1TJdk6j2dUq8mq7wM9_bz75 from raw row 18.
+2026-03-31 00:58:04,639 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 193wHDNbWWFHoX01JDZWHn9DxICBXPZ2u from raw row 18.
+2026-03-31 00:58:04,639 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1vOhyyh55rvC_Hp0bZwaBzafc9nKzrciO from raw row 18.
+2026-03-31 00:58:04,639 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16PkUCVLAEr_Rj9ZCRP52EzvD5ddXj0TP from raw row 18.
+2026-03-31 00:58:04,641 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1v_6aYbpzVTVQKa9D9HGdfnYcDaX2rT6K from raw row 19.
+2026-03-31 00:58:04,641 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VyKW2EL8rx9WqYNlj5G9Ko6aeAssAyFO from raw row 19.
+2026-03-31 00:58:04,642 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1CemgAB-1j--Jr-UUGlxESb8fMAZA5CZm from raw row 19.
+2026-03-31 00:58:04,642 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1IFR5whLBrgTgXGot_jvMlVoS8K-hp8LO from raw row 19.
+2026-03-31 00:58:04,643 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VxaJWv6yp4i8t5a_zvVj8XgMjAxMKiE1 from raw row 19.
+2026-03-31 00:58:04,643 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1uZZl2fHCpjBEm5NQvw-JTrJlkz2EivWI from raw row 19.
+2026-03-31 00:58:04,643 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1egxnbOGGbQ2tOCaBAiuh968984eEV5Nv from raw row 19.
+2026-03-31 00:58:04,644 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 17osb7KzbzJz-rOP-rvDGmFF2PwTqPEG8 from raw row 19.
+2026-03-31 00:58:04,645 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1BFN4lstet_ly7IzjFCg-YSYTvK5YsPIW from raw row 19.
+2026-03-31 00:58:04,645 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1gsowqMmxGQEWlubJZwWXHlyXeOZHrhDn from raw row 19.
+2026-03-31 00:58:04,647 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1aZoFrDRVLOfK5jdlpbdhS_jjBgZSm1gn from raw row 20.
+2026-03-31 00:58:04,647 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1tyVEHqRs_Vcg5w2SZcnr36SxaedgDHLu from raw row 20.
+2026-03-31 00:58:04,648 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1v58GjrWYD91PkqLI702B8JvftZN198hW from raw row 20.
+2026-03-31 00:58:04,648 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1XvPWgJvG7qJGPfdBZc8Zoo3Sf3OEs48H from raw row 20.
+2026-03-31 00:58:04,649 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hSgwexqUqHXoMY86UQ2XdLMhId1A7Mld from raw row 20.
+2026-03-31 00:58:04,649 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1dp1l6v-Y-1k1jL4J3sZMNyOGHhV1dRmG from raw row 20.
+2026-03-31 00:58:04,649 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1258HIW0vgVmU-T8TM90Q_O5PWm3sPc18 from raw row 20.
+2026-03-31 00:58:04,650 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1FBSr_qdm6wAl3QZX2iNaqXVnBm6w50EC from raw row 20.
+2026-03-31 00:58:04,650 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1gZfoKAXmBF3knvMJtsqDCnU2Kb1JhgWa from raw row 20.
+2026-03-31 00:58:04,650 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1qkDhhEJ7I1KnKB9cABzBwZFb_P3r80Wn from raw row 20.
+2026-03-31 00:58:04,651 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KzuYy6GSWs3yy11SsUBmR0vLevkoBPQB from raw row 21.
+2026-03-31 00:58:04,651 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1BnLptXscP17FJ7NH86_BZzd8CiVTZPUA from raw row 21.
+2026-03-31 00:58:04,651 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1w4eWMowDukmfugbL1h_-q5jr6RS_V-X1 from raw row 21.
+2026-03-31 00:58:04,653 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1CNtLIT_uIQRx9Ut_CKFlmwi1K2K15NK5 from raw row 21.
+2026-03-31 00:58:04,653 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1-SD_RRhHNPGyjjJhAnqIsCr98gk623kQ from raw row 21.
+2026-03-31 00:58:04,654 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1z_L505iLwHEqSTwLTnF0OYfc6r9jcnZZ from raw row 21.
+2026-03-31 00:58:04,654 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1EcUwiEezZTOQKP3YKDY8QYZR5Br13zIZ from raw row 21.
+2026-03-31 00:58:04,655 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZwlglmQopG5uMnTWDxU0oFeixes2uKj9 from raw row 21.
+2026-03-31 00:58:04,655 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1HqS5DM007u18sj3Jqhvkfdi1WYMXDVyL from raw row 21.
+2026-03-31 00:58:04,655 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 13zUtqAo0PdDAVJsqB6NO182YHk2hJDN6 from raw row 21.
+2026-03-31 00:58:04,656 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1tqCWTl8xhmPAkYirqShpsvT8PBP5j_rd from raw row 22.
+2026-03-31 00:58:04,657 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1z7e8cB1aVr14RAiy6gbX408OihLV1-dF from raw row 22.
+2026-03-31 00:58:04,657 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Rrz7Wjt1ibjXwYi7UdfMK2d0I1Mr5n_m from raw row 22.
+2026-03-31 00:58:04,657 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cHlhc2JEJfPfTxJj_1l9Pg0OS39nWNi4 from raw row 22.
+2026-03-31 00:58:04,658 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ekp-HfgmPBtXcVIfLiwpPk3OQj0o5HjS from raw row 22.
+2026-03-31 00:58:04,659 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1uJcmQ1TzqIVlm-Eg1N2a3KDCzHDqAKMx from raw row 22.
+2026-03-31 00:58:04,659 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1LjFZ9-Qb7Xm9u22_oN8sJkk9dFI7NZ9m from raw row 22.
+2026-03-31 00:58:04,661 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1xiWHIyOfIAieLD0rwFotBgxGyvTLmsAJ from raw row 22.
+2026-03-31 00:58:04,661 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1HGDNH-MNTU_TgPLOcuiX8pDsf9YlYN_W from raw row 22.
+2026-03-31 00:58:04,662 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1LwH8AZqsS16i269BkzuJH3rDFFq1SvDq from raw row 22.
+2026-03-31 00:58:04,663 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1w9FuNGxenK4J05o1Zca-jCHo3EUVTZeH from raw row 23.
+2026-03-31 00:58:04,663 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1nzw7AbxZbIymq-osweNcxZipPSS7MrKn from raw row 23.
+2026-03-31 00:58:04,664 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1oyEhnZUveh3gLVXd6ayePNu31221J4it from raw row 23.
+2026-03-31 00:58:04,665 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1wBk-X0JKQRt4VU3ynZ8VXtZCxOabOnqI from raw row 23.
+2026-03-31 00:58:04,665 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1-Lpej9rgmYFVIL0fpniS1GgpUOjZjrP5 from raw row 23.
+2026-03-31 00:58:04,665 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1tsF3x-0umrTeYqpB4o6MNH9Tgsdr8RN4 from raw row 23.
+2026-03-31 00:58:04,666 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Plrm3DnEaAgjh5jY_BWme_1goa1TRNl3 from raw row 23.
+2026-03-31 00:58:04,667 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VpUJya1CgtiRVmwN4XmQOT254wgem5wL from raw row 23.
+2026-03-31 00:58:04,667 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1CRypTjq5cevx21q7QS9ACBeXkc8gH5FN from raw row 23.
+2026-03-31 00:58:04,668 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1eD50C5M3OSj7wPT6n4VR0ajLtX31d-2q from raw row 23.
+2026-03-31 00:58:04,668 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1PZkP2-V7q45mOBBjmk5f21vpKIZ9ldky from raw row 24.
+2026-03-31 00:58:04,669 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1W3gvVh3wd24wYdhJs48L10k9PHVDKMY8 from raw row 24.
+2026-03-31 00:58:04,671 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1tq0ZLL2tMHipi8zlCIwVNP-2w6J1lUG9 from raw row 24.
+2026-03-31 00:58:04,671 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1GBIOyW0F-0nEWsulVy1RkuI7Mb84SB2E from raw row 24.
+2026-03-31 00:58:04,672 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1A6CDm7H7AhcLwZB3pgPmBLYAjXKj3CUM from raw row 24.
+2026-03-31 00:58:04,672 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1SjbHt068pXOxzU6hrmmaZ5fpaWyIp3an from raw row 24.
+2026-03-31 00:58:04,673 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Y9KEq1fMHI0Rfb8No62L9HJpZJ-ZRzY5 from raw row 24.
+2026-03-31 00:58:04,673 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1gTKcUOFHPyuuuIzTfVAKH4C9rLZ7fhhW from raw row 24.
+2026-03-31 00:58:04,673 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ab35MhJLBMN5YWiop3TRy8pRCB4OUFoM from raw row 24.
+2026-03-31 00:58:04,674 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1oJqqTZ3hrqLLdzjKrrILC5Lp6k550_Tt from raw row 24.
+2026-03-31 00:58:04,674 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ecF06URnqTCuUeT1P1w-3xOkRI83XypE from raw row 25.
+2026-03-31 00:58:04,675 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 115kG6Xf0A48RqESLDHnO9xwoCYdktkYZ from raw row 25.
+2026-03-31 00:58:04,676 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1thc5LykE1D0gnmciEAY9jkFCeVex_FBf from raw row 25.
+2026-03-31 00:58:04,676 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Go6daD9CWN7OSWSp6SLZlP1pI6021hAT from raw row 25.
+2026-03-31 00:58:04,676 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1DI0Sgsn9ekZNRZSZni2qcN4ViPLEdj0b from raw row 25.
+2026-03-31 00:58:04,677 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19yDjhHSCVdmXDTcmBAOktol8MaK3PvFR from raw row 25.
+2026-03-31 00:58:04,677 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1lsYAwyBvlDPpRvWcZFkbukG4WKhqX9c4 from raw row 25.
+2026-03-31 00:58:04,678 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1wmwMMlKNKQsnMfXmP67xo5KOFWCtLkR0 from raw row 25.
+2026-03-31 00:58:04,678 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1qSGKAsAyq5guPrkvwAYFK5DKeusHr2P0 from raw row 25.
+2026-03-31 00:58:04,679 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 12-r2YRsWVFHBpyrYDi52QtTcISFwKElg from raw row 25.
+2026-03-31 00:58:04,680 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 18X3_j-oGEiImqUMlnzhSkWee-86R9ZC9 from raw row 26.
+2026-03-31 00:58:04,680 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19yqlszlfZay8coZ8sYfGXk70K9D1Bna1 from raw row 26.
+2026-03-31 00:58:04,680 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16BtQND3BeqDuhzMlfS2qMLdqHZDSfqwj from raw row 26.
+2026-03-31 00:58:04,681 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1GKPvZNfdxzVKaPhhmj1ogcRyYG5J-ES9 from raw row 26.
+2026-03-31 00:58:04,681 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1aErHz57OoBYmiLaFAZmltcA-Pmx2WpnC from raw row 26.
+2026-03-31 00:58:04,682 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1jwBK70cuyIxB6jZfws-Wq5-EdIc9k_Mj from raw row 26.
+2026-03-31 00:58:04,682 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1JdL6SKsokwk5qFbZaJOwZZ02c1THBuqR from raw row 26.
+2026-03-31 00:58:04,683 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 15XQCTeevwdElhgAZw_kR3iqjyxZ_iVu8 from raw row 26.
+2026-03-31 00:58:04,683 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1QWQXo9uvGD2z0GxrpTVgPOPy8a51nG5u from raw row 26.
+2026-03-31 00:58:04,684 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 12Kfp7tsTUHeqJV5cjOPFbPsRHU_fhgSm from raw row 26.
+2026-03-31 00:58:04,684 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 10PjQ3lL4uIzhfxoT3JtasrD4C1cuin_E from raw row 27.
+2026-03-31 00:58:04,685 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ozaW1tom6dGJbi_U-2g1ilB051KK-upG from raw row 27.
+2026-03-31 00:58:04,685 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KxECRkKzjeMlY_KAvX1bAi1LWMCMr-WT from raw row 27.
+2026-03-31 00:58:04,686 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1LEAPi_XRFPmbF1Q4sHWdAr6eHMlzRzfs from raw row 27.
+2026-03-31 00:58:04,686 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 14rB18VCkVsIJz_bC4e-W5zfJtzMxZYyg from raw row 27.
+2026-03-31 00:58:04,687 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1rgWIs0ZJoKFeD_6VWvRs5H4OgobiEzYy from raw row 27.
+2026-03-31 00:58:04,687 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1OyNdFD6HNLjrw6_dt_380JsfnPy9_gS- from raw row 27.
+2026-03-31 00:58:04,688 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1qx73L--VP0APl-VUW66jmlHuqbiHm3YI from raw row 27.
+2026-03-31 00:58:04,688 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1d-UIRyW6vBjp_GAce-3TMpadWYvd4m12 from raw row 27.
+2026-03-31 00:58:04,688 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1gw8QafHvWyKWJCdEwzWqb2kDIVkt5svx from raw row 27.
+2026-03-31 00:58:04,689 | INFO | ScriptRunner.scriptThread | Raw rows found: 26
+2026-03-31 00:58:04,691 | INFO | ScriptRunner.scriptThread | Already processed submissions: 181
+2026-03-31 00:58:04,692 | INFO | ScriptRunner.scriptThread | Already processed drive file IDs: 186
+2026-03-31 00:58:04,692 | INFO | ScriptRunner.scriptThread | Already processed operation numbers: 172
+2026-03-31 00:58:04,693 | INFO | ScriptRunner.scriptThread | Pending submissions: 0
+2026-03-31 00:58:04,693 | INFO | ScriptRunner.scriptThread | Using model 'gpt-5-mini' with max_workers=100.
+2026-03-31 00:58:04,693 | INFO | ScriptRunner.scriptThread | No new submissions to process.
+2026-03-31 01:12:07,147 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1HmYE2RPBlvhOep2c36MxIopQKGt2YE17 from raw row 2.
+2026-03-31 01:12:07,148 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1z0YNXkfpNP0YnJ7vwJLhTR__EHour3b2 from raw row 3.
+2026-03-31 01:12:07,149 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1j4ZTSIMHV6mgHa1d8aDGW8ZJX2V-oxZJ from raw row 4.
+2026-03-31 01:12:07,150 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1H8jSnkFRyodArTCthCUM0x-bRKgFc_ev from raw row 5.
+2026-03-31 01:12:07,150 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1K0sufFO8OIa3QRdZKi3oJO8AJDOJOyNl from raw row 6.
+2026-03-31 01:12:07,151 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1SiOg1KPREYFrNpzL1WpaSjhdd2Gt3yjZ from raw row 7.
+2026-03-31 01:12:07,152 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KW-qRDjDcQ40XnwOmvUXDm1d2UfBge3F from raw row 8.
+2026-03-31 01:12:07,154 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1zYIGES2nVeCVLlzRecF7dpSWo9UjjQLj from raw row 8.
+2026-03-31 01:12:07,155 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZytB2xziuPp8Tr_tWnsfDIUsDDdXFrvf from raw row 8.
+2026-03-31 01:12:07,155 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1SeycN1TXlPODCssLpb4_OwtsD3Q_vqzA from raw row 8.
+2026-03-31 01:12:07,155 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 114Djf9YV8hVBuTPiChCAU2dlB8pw_TpQ from raw row 8.
+2026-03-31 01:12:07,156 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1_9-ja9w_1heacHivzIp1vXiuAlnVDBqJ from raw row 9.
+2026-03-31 01:12:07,156 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1PhHpKMDoqXysz-XJr5Ws49KyuhprQSaO from raw row 9.
+2026-03-31 01:12:07,157 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1LtLll0XLRYwcs27GkpDVU2EldhT7aEzT from raw row 9.
+2026-03-31 01:12:07,158 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1a58CnOIyGDbgv-bEmepK5o2BLL3CVe5- from raw row 9.
+2026-03-31 01:12:07,159 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1K2DIJy7G0F3hE16OkPnOApa0Lrqe0QeY from raw row 9.
+2026-03-31 01:12:07,160 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1mwGiqaB7cEiVnhomFJWh_vypiSlAWoOM from raw row 9.
+2026-03-31 01:12:07,160 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1-kTUsBFs7DWaDX5JO1xl9uqEXiy33PqX from raw row 9.
+2026-03-31 01:12:07,162 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1byBhVGPvfz-Jkjxc0yChKgsidKzMMnsM from raw row 9.
+2026-03-31 01:12:07,162 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1vEvul0t51InFR1tKdCArW9Egh5jFRgBq from raw row 9.
+2026-03-31 01:12:07,163 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1aTWU6SbFV9KG2ziotklXPhrGt30GfKNC from raw row 9.
+2026-03-31 01:12:07,163 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hU7s0QjUBI-Va_pwOiFqx5k5BWJgtcF6 from raw row 10.
+2026-03-31 01:12:07,163 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1R1FEr3OeFwbZofa1R3GzwNK2QYRDDiZG from raw row 10.
+2026-03-31 01:12:07,164 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KlckG2La4HuQbKRW0b6CNGeE0Q_wNgBw from raw row 10.
+2026-03-31 01:12:07,164 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cxNwlLio3k_SEOyfPFv8_yPJgi-QMy5K from raw row 10.
+2026-03-31 01:12:07,165 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1BjK8StekVZJzVXH9yf4WCoWyL1-gVYnm from raw row 10.
+2026-03-31 01:12:07,165 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1MNyqjR8xKOMMu4P2qraZiardFkGzscCu from raw row 10.
+2026-03-31 01:12:07,166 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Ga6OwU7zQG0sWV3vGDqGjKXEyOJ-liNC from raw row 10.
+2026-03-31 01:12:07,166 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 10QHIjX3ETSZZR-b4V7CuzH_hCUrGylvN from raw row 10.
+2026-03-31 01:12:07,167 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1vaq44S0SjP_KMcfZVQ76jLQqXa4bR5vP from raw row 10.
+2026-03-31 01:12:07,167 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZYmFEwtNAvXymqJSWhrR4LC6Fsijxm4C from raw row 10.
+2026-03-31 01:12:07,168 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1iJXSPVKleHADMlhQTvIGNFHZm4w9hrOB from raw row 11.
+2026-03-31 01:12:07,168 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1nHq0Vz3oInUDtBhK_UvLWTjPfjLGW3v6 from raw row 11.
+2026-03-31 01:12:07,169 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VJ2hkIdPozu1y7SsZF7Y54mGGlgizeqN from raw row 11.
+2026-03-31 01:12:07,169 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1IKCUzyfgS5N0c3CkaEi1-k-zKY_mrKlG from raw row 11.
+2026-03-31 01:12:07,170 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Mxr9BYmRGXUV4MoZ7vKRlofap_08hIZn from raw row 11.
+2026-03-31 01:12:07,171 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1W0TVwk6zUkqYPHaiNfWEe2--L82VPnEC from raw row 11.
+2026-03-31 01:12:07,171 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19ZTJYagMQ6tWAqdAIpwR9tsh4kncH1Om from raw row 11.
+2026-03-31 01:12:07,172 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 142Sc1HlN5zC7eEp74_MRu6TeVBDa5-gs from raw row 11.
+2026-03-31 01:12:07,172 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19FrhWw9xeSzND-QGIR80usXBugWKdVbX from raw row 11.
+2026-03-31 01:12:07,173 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1bV2JLwmZe4x5WjaXNK2952u4t7PLcEwo from raw row 11.
+2026-03-31 01:12:07,173 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1Fk9E7YVYKq8tNeIK-2BwkPArhW1-iqWw from raw row 12.
+2026-03-31 01:12:07,174 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1rUvwBbMKnPkuXDW8HLcI8SPrrKu0dttH from raw row 12.
+2026-03-31 01:12:07,174 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1fRiovczhzZ6_Ss3ScL-7gk3SDTsSPsqj from raw row 12.
+2026-03-31 01:12:07,175 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KgR8pA5cXa-EXDRe9qly-LSN_RrPW2rb from raw row 12.
+2026-03-31 01:12:07,176 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1oDpUoHrsghubuGn6o-nn0rk36iQelJDf from raw row 12.
+2026-03-31 01:12:07,176 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1_4rhF4YCRG9R66pd4Uh1OmpWTSwcKPNy from raw row 12.
+2026-03-31 01:12:07,177 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1-xfgbgCkVriefp1qvmXgCaaxjRuvr9fO from raw row 12.
+2026-03-31 01:12:07,178 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 10_8Ci7gvVQ5Hv-sm_0RIhI0n8_1Vmbx0 from raw row 12.
+2026-03-31 01:12:07,178 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1C65kNnWv-G1a_UFECJPZDsTwYJVKBHro from raw row 12.
+2026-03-31 01:12:07,179 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1w_7eLHJTyJ5yAtyAX8Mu4wCUTBHL2HwK from raw row 12.
+2026-03-31 01:12:07,179 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1WsK87tid7wokVOrTfLuHOUwxbR0efcTO from raw row 13.
+2026-03-31 01:12:07,180 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 19AHRJGR_2QcaDkrWbfo352TzQA6z_gsr from raw row 13.
+2026-03-31 01:12:07,180 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1unA8S91eYdA_RAbWn1qQoE_SA6-giFAZ from raw row 13.
+2026-03-31 01:12:07,180 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1sr1CpM0r3TsIMEufvGelfeYLg4mG1-z9 from raw row 13.
+2026-03-31 01:12:07,181 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1KvHF56650VuM4vuRfxKsQGWEkRp-fMZu from raw row 13.
+2026-03-31 01:12:07,181 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1gFEnMfe09BOh8kA7byTGXmxHoKtppD0S from raw row 13.
+2026-03-31 01:12:07,182 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1_Gma-WDfsJXj5FGtthjLB3CHpqZjjobs from raw row 13.
+2026-03-31 01:12:07,182 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1p_VFIVG5pDrs31v9QH_YtvSRI7_qfDRn from raw row 13.
+2026-03-31 01:12:07,182 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1bvgGOMcp22Xxyaz5zOBKNHk6HGpRC_Ra from raw row 13.
+2026-03-31 01:12:07,184 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1xbeDgosGsdNCJZzHx4cCZ4CSHPSFBvad from raw row 13.
+2026-03-31 01:12:07,184 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 18OqyE-i4cm9j5liK9wdBiCZOTTAQb4ta from raw row 14.
+2026-03-31 01:12:07,184 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 14eBT-8wqh5SPSKK50pSeFCvYx1h0ExlM from raw row 14.
+2026-03-31 01:12:07,185 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1NnwFR4BWLEwSkqmFiNUQ0iXo4W5uhp4Y from raw row 14.
+2026-03-31 01:12:07,186 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1k8AwgQc_jOsG3ksgOYrxjHCsG7l-IjaX from raw row 14.
+2026-03-31 01:12:07,186 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 11C5GlKMvVa0LbZI2uUYjdtfBjllWz_zO from raw row 14.
+2026-03-31 01:12:07,187 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16yg3rFLvTTpzXcBnDAxOz2gwB-De-mE2 from raw row 14.
+2026-03-31 01:12:07,187 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1AdP5n7iyjxpTDigdDZ-d074-i3y7fqz0 from raw row 14.
+2026-03-31 01:12:07,187 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1fo7ICIf9PoUy-muhjHsMNw219K8NDQel from raw row 14.
+2026-03-31 01:12:07,188 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hZf3CdyzyY9HJCsmstW2WEKwyb8O1A2f from raw row 14.
+2026-03-31 01:12:07,188 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1ZVMVs45MDKIBj5w7ASqijuNQKsDS9wih from raw row 14.
+2026-03-31 01:12:07,189 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1VJzDulII_8TRNxD8HGgCBzYWpWFnyq10 from raw row 15.
+2026-03-31 01:12:07,189 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1fk020mmjB4Eb0KDTENQrN1lz1I2MBPja from raw row 15.
+2026-03-31 01:12:07,190 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 15tSQqXkaQP3XUFl5_LYw0IdtxuEouYTX from raw row 15.
+2026-03-31 01:12:07,190 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1JOh2psg9s-pKwb4aFj_jEejaQUcQ3I16 from raw row 15.
+2026-03-31 01:12:07,190 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16KiLXap6gI0hJcOeZjRxpWuPfGtjDvls from raw row 15.
+2026-03-31 01:12:07,193 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 131K-fTT1kRLLVZyZGqjxy82cR8y_3gJB from raw row 15.
+2026-03-31 01:12:07,194 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1hTm7EXR_8wOheNfQ0-Qn4v7F_atWLedl from raw row 15.
+2026-03-31 01:12:07,195 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cW1Sqyx340saIQUaId07D4qYLI2E3a6m from raw row 15.
+2026-03-31 01:12:07,195 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1cgCiEnNNHsDI3L0ME4Wnu4BocNxyv5UH from raw row 15.
+2026-03-31 01:12:07,195 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1poxq4r83lsS3KaoRJ-80E0wqFSwSZTgL from raw row 15.
+2026-03-31 01:12:07,196 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1K9zqMKTd9s69M-lFLrd-eFtkECc1NgYU from raw row 16.
+2026-03-31 01:12:07,196 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1wcgX_YYusEQYwXqp1tVQvZiAJ25lUn6L from raw row 16.
+2026-03-31 01:12:07,197 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 16p13MVv98ZtUP39HObuvECcjOLb6zR3J from raw row 16.
+2026-03-31 01:12:07,197 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 1MX03Imu6lBXbcuwf6Uv29BbzpOhzdTqz from raw row 17.
+2026-03-31 01:12:07,197 | INFO | ScriptRunner.scriptThread | Skipping already processed file_id 15XBubsHCAiXgg3foI2L499J4CKURJcIU from raw row 17.
+2026-03-31 01:12:07,199 | INFO | ScriptRunner.scriptThread | Raw rows found: 26
+2026-03-31 01:12:07,200 | INFO | ScriptRunner.scriptThread | Already processed submissions: 81
+2026-03-31 01:12:07,201 | INFO | ScriptRunner.scriptThread | Already processed drive file IDs: 86
+2026-03-31 01:12:07,201 | INFO | ScriptRunner.scriptThread | Already processed operation numbers: 81
+2026-03-31 01:12:07,202 | INFO | ScriptRunner.scriptThread | Pending submissions: 100
+2026-03-31 01:12:07,203 | INFO | ScriptRunner.scriptThread | Using model 'gpt-5-mini' with max_workers=100.
+2026-03-31 01:12:12,281 | INFO | ThreadPoolExecutor-2_0 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:16,247 | INFO | ThreadPoolExecutor-2_3 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:16,248 | INFO | ThreadPoolExecutor-2_47 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:21,567 | INFO | ThreadPoolExecutor-2_5 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:21,761 | INFO | ThreadPoolExecutor-2_1 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:21,968 | INFO | ThreadPoolExecutor-2_8 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:21,969 | INFO | ThreadPoolExecutor-2_9 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:21,970 | INFO | ThreadPoolExecutor-2_10 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:21,978 | INFO | ThreadPoolExecutor-2_11 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,178 | INFO | ThreadPoolExecutor-2_13 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,339 | INFO | ThreadPoolExecutor-2_12 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,341 | INFO | ThreadPoolExecutor-2_14 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,343 | INFO | ThreadPoolExecutor-2_15 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,344 | INFO | ThreadPoolExecutor-2_16 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,713 | INFO | ThreadPoolExecutor-2_17 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,951 | INFO | ThreadPoolExecutor-2_77 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,952 | INFO | ThreadPoolExecutor-2_19 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,954 | INFO | ThreadPoolExecutor-2_78 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:22,960 | INFO | ThreadPoolExecutor-2_79 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,757 | INFO | ThreadPoolExecutor-2_80 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,757 | INFO | ThreadPoolExecutor-2_22 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,758 | INFO | ThreadPoolExecutor-2_23 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,758 | INFO | ThreadPoolExecutor-2_24 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,758 | INFO | ThreadPoolExecutor-2_25 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,759 | INFO | ThreadPoolExecutor-2_26 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,759 | INFO | ThreadPoolExecutor-2_27 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,814 | INFO | ThreadPoolExecutor-2_2 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,814 | INFO | ThreadPoolExecutor-2_29 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,815 | INFO | ThreadPoolExecutor-2_31 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,817 | INFO | ThreadPoolExecutor-2_34 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,816 | INFO | ThreadPoolExecutor-2_30 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,815 | INFO | ThreadPoolExecutor-2_32 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,818 | INFO | ThreadPoolExecutor-2_33 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,828 | INFO | ThreadPoolExecutor-2_35 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,829 | INFO | ThreadPoolExecutor-2_36 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,830 | INFO | ThreadPoolExecutor-2_37 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,830 | INFO | ThreadPoolExecutor-2_40 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,831 | INFO | ThreadPoolExecutor-2_41 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,831 | INFO | ThreadPoolExecutor-2_38 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,832 | INFO | ThreadPoolExecutor-2_39 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,837 | INFO | ThreadPoolExecutor-2_42 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,842 | INFO | ThreadPoolExecutor-2_45 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,843 | INFO | ThreadPoolExecutor-2_43 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,844 | INFO | ThreadPoolExecutor-2_44 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,849 | INFO | ThreadPoolExecutor-2_46 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,854 | INFO | ThreadPoolExecutor-2_6 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,859 | INFO | ThreadPoolExecutor-2_7 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,861 | INFO | ThreadPoolExecutor-2_48 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,861 | INFO | ThreadPoolExecutor-2_49 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,959 | INFO | ThreadPoolExecutor-2_50 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,959 | INFO | ThreadPoolExecutor-2_54 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,961 | INFO | ThreadPoolExecutor-2_53 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,961 | INFO | ThreadPoolExecutor-2_55 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,961 | INFO | ThreadPoolExecutor-2_56 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,963 | INFO | ThreadPoolExecutor-2_57 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,963 | INFO | ThreadPoolExecutor-2_58 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,965 | INFO | ThreadPoolExecutor-2_59 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,972 | INFO | ThreadPoolExecutor-2_62 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,976 | INFO | ThreadPoolExecutor-2_61 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,977 | INFO | ThreadPoolExecutor-2_60 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,994 | INFO | ThreadPoolExecutor-2_63 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,994 | INFO | ThreadPoolExecutor-2_65 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,994 | INFO | ThreadPoolExecutor-2_64 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,995 | INFO | ThreadPoolExecutor-2_66 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,996 | INFO | ThreadPoolExecutor-2_67 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,997 | INFO | ThreadPoolExecutor-2_68 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,998 | INFO | ThreadPoolExecutor-2_69 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:25,999 | INFO | ThreadPoolExecutor-2_70 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,006 | INFO | ThreadPoolExecutor-2_71 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,011 | INFO | ThreadPoolExecutor-2_72 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,012 | INFO | ThreadPoolExecutor-2_73 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,019 | INFO | ThreadPoolExecutor-2_75 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,019 | INFO | ThreadPoolExecutor-2_74 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,021 | INFO | ThreadPoolExecutor-2_76 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,026 | INFO | ThreadPoolExecutor-2_18 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,031 | INFO | ThreadPoolExecutor-2_20 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,036 | INFO | ThreadPoolExecutor-2_21 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,149 | INFO | ThreadPoolExecutor-2_83 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,163 | INFO | ThreadPoolExecutor-2_87 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,174 | INFO | ThreadPoolExecutor-2_86 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,175 | INFO | ThreadPoolExecutor-2_89 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,175 | INFO | ThreadPoolExecutor-2_92 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,175 | INFO | ThreadPoolExecutor-2_91 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,176 | INFO | ThreadPoolExecutor-2_93 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,176 | INFO | ThreadPoolExecutor-2_94 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,176 | INFO | ThreadPoolExecutor-2_99 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,177 | INFO | ThreadPoolExecutor-2_95 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,178 | INFO | ThreadPoolExecutor-2_98 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,178 | INFO | ThreadPoolExecutor-2_97 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,179 | INFO | ThreadPoolExecutor-2_96 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,261 | INFO | ThreadPoolExecutor-2_4 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,273 | INFO | ThreadPoolExecutor-2_81 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,291 | INFO | ThreadPoolExecutor-2_28 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,305 | INFO | ThreadPoolExecutor-2_51 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,317 | INFO | ThreadPoolExecutor-2_85 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,331 | INFO | ThreadPoolExecutor-2_88 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,331 | INFO | ThreadPoolExecutor-2_90 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,355 | INFO | ThreadPoolExecutor-2_84 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,369 | INFO | ThreadPoolExecutor-2_82 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:12:26,369 | INFO | ThreadPoolExecutor-2_52 | file_cache is only supported with oauth2client<4.0.0
+2026-03-31 01:13:00,908 | INFO | ThreadPoolExecutor-2_74 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:01,890 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:02,105 | INFO | ThreadPoolExecutor-2_10 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:02,345 | INFO | ThreadPoolExecutor-2_30 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:02,387 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:02,649 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:03,174 | INFO | ThreadPoolExecutor-2_32 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:03,236 | INFO | ThreadPoolExecutor-2_8 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:03,594 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:03,595 | INFO | ThreadPoolExecutor-2_96 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:03,597 | INFO | ThreadPoolExecutor-2_76 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:03,763 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:03,905 | INFO | ThreadPoolExecutor-2_97 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:04,077 | INFO | ThreadPoolExecutor-2_31 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:04,344 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:04,434 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:04,766 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:04,774 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:04,889 | INFO | ThreadPoolExecutor-2_75 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:05,164 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:05,607 | INFO | ThreadPoolExecutor-2_98 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:05,812 | INFO | ThreadPoolExecutor-2_53 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:05,873 | INFO | ThreadPoolExecutor-2_52 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:05,952 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:06,767 | INFO | ThreadPoolExecutor-2_54 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:06,836 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:07,284 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:07,363 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:08,555 | INFO | ThreadPoolExecutor-2_9 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:08,827 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:10,386 | INFO | ThreadPoolExecutor-2_23 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:10,603 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:13,740 | INFO | ThreadPoolExecutor-2_44 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:13,883 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:14,299 | INFO | ThreadPoolExecutor-2_83 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:14,455 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:14,667 | INFO | ThreadPoolExecutor-2_59 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:14,810 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:15,631 | INFO | ThreadPoolExecutor-2_73 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:16,031 | INFO | ThreadPoolExecutor-2_67 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:16,098 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:16,248 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:16,902 | INFO | ThreadPoolExecutor-2_14 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,017 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:17,142 | INFO | ThreadPoolExecutor-2_27 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,266 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:17,267 | INFO | ThreadPoolExecutor-2_0 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,387 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:17,428 | INFO | ThreadPoolExecutor-2_92 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,464 | INFO | ThreadPoolExecutor-2_7 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,496 | INFO | ThreadPoolExecutor-2_89 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,534 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'blank_operation_number'.
+2026-03-31 01:13:17,745 | INFO | ThreadPoolExecutor-2_33 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:17,746 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:17,748 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:17,865 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:17,989 | INFO | ThreadPoolExecutor-2_26 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,088 | INFO | ThreadPoolExecutor-2_13 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,106 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:18,211 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:18,212 | INFO | ThreadPoolExecutor-2_72 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,317 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:18,318 | INFO | ThreadPoolExecutor-2_86 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,427 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:18,446 | INFO | ThreadPoolExecutor-2_12 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,546 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:18,644 | INFO | ThreadPoolExecutor-2_4 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,683 | INFO | ThreadPoolExecutor-2_88 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:18,712 | INFO | ThreadPoolExecutor-2_22 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,068 | INFO | ThreadPoolExecutor-2_35 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,070 | INFO | ThreadPoolExecutor-2_57 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,071 | INFO | ThreadPoolExecutor-2_41 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,098 | INFO | ThreadPoolExecutor-2_65 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,099 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:19,176 | INFO | ThreadPoolExecutor-2_78 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,236 | INFO | ThreadPoolExecutor-2_43 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,473 | INFO | ThreadPoolExecutor-2_42 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,519 | INFO | ThreadPoolExecutor-2_87 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,547 | INFO | ThreadPoolExecutor-2_64 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,548 | INFO | ThreadPoolExecutor-2_58 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,671 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:19,673 | INFO | ThreadPoolExecutor-2_51 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,673 | INFO | ThreadPoolExecutor-2_17 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,827 | INFO | ThreadPoolExecutor-2_1 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,858 | INFO | ThreadPoolExecutor-2_81 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,889 | INFO | ThreadPoolExecutor-2_77 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,904 | INFO | ThreadPoolExecutor-2_48 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:19,915 | INFO | ThreadPoolExecutor-2_11 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,233 | INFO | ThreadPoolExecutor-2_55 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,233 | INFO | ThreadPoolExecutor-2_91 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,265 | INFO | ThreadPoolExecutor-2_99 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,265 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:20,266 | INFO | ThreadPoolExecutor-2_60 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,327 | INFO | ThreadPoolExecutor-2_21 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,422 | INFO | ThreadPoolExecutor-2_28 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,422 | INFO | ThreadPoolExecutor-2_50 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,467 | INFO | ThreadPoolExecutor-2_94 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,595 | INFO | ThreadPoolExecutor-2_6 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,765 | INFO | ThreadPoolExecutor-2_80 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,812 | INFO | ThreadPoolExecutor-2_19 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:20,827 | INFO | ThreadPoolExecutor-2_16 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,114 | INFO | ThreadPoolExecutor-2_47 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,162 | INFO | ThreadPoolExecutor-2_34 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,162 | INFO | ThreadPoolExecutor-2_25 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,163 | INFO | ThreadPoolExecutor-2_69 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,309 | INFO | ThreadPoolExecutor-2_38 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,421 | INFO | ThreadPoolExecutor-2_68 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,532 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:21,608 | INFO | ThreadPoolExecutor-2_85 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,626 | INFO | ThreadPoolExecutor-2_66 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,655 | INFO | ThreadPoolExecutor-2_70 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,747 | INFO | ThreadPoolExecutor-2_29 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,871 | INFO | ThreadPoolExecutor-2_63 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,919 | INFO | ThreadPoolExecutor-2_95 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,951 | INFO | ThreadPoolExecutor-2_93 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:21,986 | INFO | ThreadPoolExecutor-2_18 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:22,030 | INFO | ThreadPoolExecutor-2_40 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:22,141 | INFO | ThreadPoolExecutor-2_5 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:22,312 | INFO | ThreadPoolExecutor-2_71 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,322 | INFO | ThreadPoolExecutor-2_84 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,379 | INFO | ThreadPoolExecutor-2_49 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,389 | INFO | ThreadPoolExecutor-2_45 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,405 | INFO | ThreadPoolExecutor-2_3 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,450 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:23,499 | INFO | ThreadPoolExecutor-2_24 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,636 | INFO | ThreadPoolExecutor-2_15 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,681 | INFO | ThreadPoolExecutor-2_61 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,780 | INFO | ThreadPoolExecutor-2_82 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,803 | INFO | ThreadPoolExecutor-2_90 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:23,882 | INFO | ThreadPoolExecutor-2_62 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:24,144 | INFO | ThreadPoolExecutor-2_79 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:24,502 | INFO | ThreadPoolExecutor-2_2 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:24,672 | INFO | ThreadPoolExecutor-2_56 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:24,910 | INFO | ThreadPoolExecutor-2_46 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:25,278 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'blank_operation_number'.
+2026-03-31 01:13:26,575 | INFO | ThreadPoolExecutor-2_39 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:26,761 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,074 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:27,075 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,106 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:27,129 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:27,136 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:27,152 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:27,215 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:27,242 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:27,243 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:27,243 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:27,244 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:27,244 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:27,245 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'blank_operation_number'.
+2026-03-31 01:13:27,245 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:27,245 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:27,247 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:27,248 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,248 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'blank_operation_number'.
+2026-03-31 01:13:27,249 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:27,249 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:27,249 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:27,250 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:27,250 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:27,250 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:27,251 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:27,251 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:27,253 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:27,254 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,254 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:27,254 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:27,254 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,255 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:27,255 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,255 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:27,256 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:27,256 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,256 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:27,257 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'ok'.
+2026-03-31 01:13:27,257 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'ok'.
+2026-03-31 01:13:27,257 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:27,257 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:27,258 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:27,258 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:27,258 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'ok'.
+2026-03-31 01:13:27,258 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'blank_operation_number'.
+2026-03-31 01:13:27,258 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:27,259 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,259 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:13:27,259 | INFO | ScriptRunner.scriptThread | Completed raw row 26 with status 'ok'.
+2026-03-31 01:13:27,260 | INFO | ScriptRunner.scriptThread | Completed raw row 19 with status 'blank_operation_number'.
+2026-03-31 01:13:27,260 | INFO | ScriptRunner.scriptThread | Completed raw row 27 with status 'blank_operation_number'.
+2026-03-31 01:13:27,260 | INFO | ScriptRunner.scriptThread | Completed raw row 23 with status 'ok'.
+2026-03-31 01:13:27,260 | INFO | ScriptRunner.scriptThread | Completed raw row 22 with status 'blank_operation_number'.
+2026-03-31 01:13:27,262 | INFO | ScriptRunner.scriptThread | Completed raw row 25 with status 'ok'.
+2026-03-31 01:13:27,262 | INFO | ScriptRunner.scriptThread | Completed raw row 24 with status 'ok'.
+2026-03-31 01:13:27,264 | INFO | ScriptRunner.scriptThread | Completed raw row 18 with status 'ok'.
+2026-03-31 01:13:27,264 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:37,074 | INFO | ThreadPoolExecutor-2_36 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:37,197 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:13:40,650 | INFO | ThreadPoolExecutor-2_37 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:13:40,771 | INFO | ScriptRunner.scriptThread | Completed raw row 21 with status 'ok'.
+2026-03-31 01:14:34,559 | INFO | ThreadPoolExecutor-2_20 | HTTP Request: POST https://api.openai.com/v1/responses "HTTP/1.1 200 OK"
+2026-03-31 01:14:34,689 | INFO | ScriptRunner.scriptThread | Completed raw row 20 with status 'ok'.
+2026-03-31 01:14:35,270 | INFO | ScriptRunner.scriptThread | Appended 100 processed rows into 'processed data'.
