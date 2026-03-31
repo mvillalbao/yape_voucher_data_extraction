@@ -1,21 +1,23 @@
-"""Process new Yape voucher submissions into a structured 'processed data' tab.
-
-Simple, function-based implementation for easy maintenance.
-"""
+"""Process new Yape voucher submissions into a structured worksheet."""
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import io
-import json
 import logging
 import os
+import random
 import re
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
 from typing import Any
 
 import gspread
-import base64
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -26,6 +28,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 REQUIRED_RAW_COLUMNS = ["timestamp", "comprobante yape", "email address"]
 DEFAULT_OPENAI_MODEL = "gpt-5-mini"
+DEFAULT_MAX_WORKERS = 50
+DEFAULT_OPENAI_TIMEOUT_SECONDS = 90
+DEFAULT_OPENAI_MAX_ATTEMPTS = 8
 
 PROCESSED_HEADERS = [
     "submission_id",
@@ -41,10 +46,14 @@ PROCESSED_HEADERS = [
     "extracted_time",
     "extracted_phone_or_recipient",
     "openai_model",
+    "openai_input_tokens",
+    "openai_cached_input_tokens",
+    "openai_output_tokens",
+    "openai_total_tokens",
+    "openai_retry_count",
     "processed_at_utc",
     "status",
     "error_message",
-    "raw_openai_json",
 ]
 
 DRIVE_ID_PATTERNS = [
@@ -53,26 +62,155 @@ DRIVE_ID_PATTERNS = [
     re.compile(r"[?&]id=([a-zA-Z0-9_-]+)"),
 ]
 
+EXTRACTION_SYSTEM_PROMPT = """You are an expert at extracting structured data from Yape payment vouchers.
+
+CRITICAL RULES:
+1. Extract only what is clearly visible in the document. Never guess or infer missing values.
+2. If a field is absent or unreadable, return null.
+3. Return the transaction amount as a plain decimal string using a dot separator and no currency symbol.
+4. Return dates in ISO format YYYY-MM-DD whenever the voucher provides enough information.
+5. Return time in 24-hour HH:MM format whenever the voucher provides enough information.
+6. Preserve operation numbers exactly as shown, including leading zeroes.
+7. Return currency as a 3-letter uppercase code when visible.
+8. For phone_or_recipient, prefer the recipient name if shown clearly; otherwise return the phone number.
+9. Do not include explanatory text outside the schema.
+10. Be sure to only return the transfer amount if you are certain. If there is any doubt, return null for the amount."""
+
+EXTRACTION_USER_PROMPT = (
+    "Extract the payment details from this Yape voucher and return them in the requested schema."
+)
+
+_THREAD_CONTEXT = threading.local()
+
 
 class ConfigError(Exception):
     """Raised when required configuration is missing."""
 
 
+class ExtractionCallError(Exception):
+    """Raised when the extraction call fails after one or more attempts."""
+
+    def __init__(self, message: str, *, retry_count: int) -> None:
+        super().__init__(message)
+        self.retry_count = retry_count
+
+
+@dataclass(frozen=True)
+class AppConfig:
+    openai_api_key: str
+    spreadsheet_id: str
+    raw_sheet_name: str
+    processed_sheet_name: str
+    service_account_file: str
+    openai_model: str
+    max_workers: int
+    openai_timeout_seconds: int
+    openai_max_attempts: int
+
+
+@dataclass(frozen=True)
+class PendingSubmission:
+    drive_file_id: str | None
+    link_index: int
+    raw_row_number: str
+    timestamp: str
+    email: str
+    drive_link: str
+
+
+@dataclass(frozen=True)
+class DriveDocument:
+    file_id: str
+    file_name: str
+    mime_type: str
+    content: bytes
+
+
+@dataclass
+class DedupeState:
+    submission_ids: set[str]
+    operation_numbers: set[str]
+    lock: threading.Lock
+
+
+@dataclass(frozen=True)
+class OpenAIUsage:
+    input_tokens: int | None = None
+    cached_input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
+    retry_count: int = 0
+
+
 class VoucherExtraction(BaseModel):
-    """Structured extraction schema returned by the model."""
+    """Structured voucher data returned by the model."""
 
     model_config = ConfigDict(extra="forbid")
 
-    operation_number: str | None = Field(default=None)
-    amount: str | None = Field(default=None)
-    currency: str | None = Field(default=None)
-    date: str | None = Field(default=None)
-    time: str | None = Field(default=None)
-    phone_or_recipient: str | None = Field(default=None)
+    operation_number: str | None = Field(
+        default=None,
+        description=(
+            "Transaction or operation number exactly as shown on the voucher. "
+            "Preserve leading zeroes and keep it as text. Example: 00123456789."
+        ),
+    )
+    amount: float | None = Field(
+        default=None,
+        description=(
+            "Transferred amount. Be absolutely sure of this value, if you have any doubt, return none. Example: 24.90."
+        ),
+    )
+    currency: str | None = Field(
+        default=None,
+        pattern=r"^[A-Z]{3}$",
+        description=(
+            "Return the detected currency as a 3-letter uppercase code. "
+            "Examples: PEN, USD."
+        ),
+    )
+    date: str | None = Field(
+        default=None,
+        pattern=r"^\d{4}-\d{2}-\d{2}$",
+        description=(
+            "Transaction date in ISO 8601 format YYYY-MM-DD. Example: 2026-03-29. If year not shown, assume current year"
+        ),
+    )
+    time: str | None = Field(
+        default=None,
+        pattern=r"^\d{2}:\d{2}$",
+        description=(
+            "Transaction time in 24-hour HH:MM format. Example: 14:37."
+        ),
+    )
+    phone_or_recipient: str | None = Field(
+        default=None,
+        description=(
+            "Recipient name when clearly visible, otherwise the recipient phone number. "
+            "Examples: Juan Perez, 987654321."
+        ),
+    )
 
 
 def configure_logging() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.handlers.clear()
+
+    formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(threadName)s | %(message)s")
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+
+    file_handler = RotatingFileHandler(
+        "voucher_processing.log",
+        maxBytes=1_000_000,
+        backupCount=3,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(formatter)
+
+    root_logger.addHandler(stream_handler)
+    root_logger.addHandler(file_handler)
 
 
 def get_env(name: str) -> str:
@@ -87,27 +225,72 @@ def get_env_optional(name: str, default: str) -> str:
     return value or default
 
 
-def load_config() -> dict[str, str]:
+def get_env_int(name: str, default: int, *, minimum: int = 1) -> int:
+    raw_value = os.getenv(name, "").strip()
+    if not raw_value:
+        return default
+
+    try:
+        parsed = int(raw_value)
+    except ValueError as exc:
+        raise ConfigError(f"Environment variable {name} must be an integer.") from exc
+
+    if parsed < minimum:
+        raise ConfigError(f"Environment variable {name} must be >= {minimum}.")
+
+    return parsed
+
+
+def load_config() -> AppConfig:
     load_dotenv()
-    return {
-        "openai_api_key": get_env("OPENAI_API_KEY"),
-        "spreadsheet_id": get_env("SPREADSHEET_ID"),
-        "raw_sheet_name": get_env("RAW_SHEET_NAME"),
-        "processed_sheet_name": get_env("PROCESSED_SHEET_NAME"),
-        "service_account_file": get_env("GOOGLE_SERVICE_ACCOUNT_FILE"),
-        "openai_model": get_env_optional("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
-    }
+    return AppConfig(
+        openai_api_key=get_env("OPENAI_API_KEY"),
+        spreadsheet_id=get_env("SPREADSHEET_ID"),
+        raw_sheet_name=get_env("RAW_SHEET_NAME"),
+        processed_sheet_name=get_env("PROCESSED_SHEET_NAME"),
+        service_account_file=get_env("GOOGLE_SERVICE_ACCOUNT_FILE"),
+        openai_model=get_env_optional("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
+        max_workers=get_env_int("MAX_WORKERS", DEFAULT_MAX_WORKERS),
+        openai_timeout_seconds=get_env_int(
+            "OPENAI_TIMEOUT_SECONDS",
+            DEFAULT_OPENAI_TIMEOUT_SECONDS,
+        ),
+        openai_max_attempts=get_env_int(
+            "OPENAI_MAX_ATTEMPTS",
+            DEFAULT_OPENAI_MAX_ATTEMPTS,
+        ),
+    )
 
 
-def get_google_clients(service_account_file: str) -> tuple[gspread.Client, Any]:
+def build_google_credentials(service_account_file: str) -> Credentials:
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive.readonly",
     ]
-    creds = Credentials.from_service_account_file(service_account_file, scopes=scopes)
-    sheets_client = gspread.authorize(creds)
-    drive_client = build("drive", "v3", credentials=creds)
-    return sheets_client, drive_client
+    return Credentials.from_service_account_file(service_account_file, scopes=scopes)
+
+
+def get_sheets_client(credentials: Credentials) -> gspread.Client:
+    return gspread.authorize(credentials)
+
+
+def get_worker_clients(config: AppConfig) -> tuple[Any, OpenAI]:
+    drive_client = getattr(_THREAD_CONTEXT, "drive_client", None)
+    openai_client = getattr(_THREAD_CONTEXT, "openai_client", None)
+
+    if drive_client is None:
+        creds = build_google_credentials(config.service_account_file)
+        drive_client = build("drive", "v3", credentials=creds)
+        _THREAD_CONTEXT.drive_client = drive_client
+
+    if openai_client is None:
+        openai_client = OpenAI(
+            api_key=config.openai_api_key,
+            timeout=config.openai_timeout_seconds,
+        )
+        _THREAD_CONTEXT.openai_client = openai_client
+
+    return drive_client, openai_client
 
 
 def normalize_header(header: str) -> str:
@@ -120,58 +303,151 @@ def get_raw_rows(raw_ws: gspread.Worksheet) -> list[dict[str, str]]:
         raise ValueError("Raw sheet is empty.")
 
     headers = values[0]
-    norm_headers = [normalize_header(h) for h in headers]
+    normalized_headers = [normalize_header(header) for header in headers]
 
     for required in REQUIRED_RAW_COLUMNS:
-        if required not in norm_headers:
+        if required not in normalized_headers:
             raise ValueError(f"Raw sheet missing required column: {required}")
 
     rows: list[dict[str, str]] = []
-    for row_num, row in enumerate(values[1:], start=2):
-        row_padded = row + [""] * (len(headers) - len(row))
-        row_map = {normalize_header(headers[i]): row_padded[i].strip() for i in range(len(headers))}
-        row_map["_raw_row_number"] = str(row_num)
+    for row_number, row in enumerate(values[1:], start=2):
+        padded_row = row + [""] * (len(headers) - len(row))
+        row_map = {
+            normalize_header(headers[index]): padded_row[index].strip()
+            for index in range(len(headers))
+        }
+        row_map["_raw_row_number"] = str(row_number)
         rows.append(row_map)
 
     return rows
 
 
-def make_submission_id(timestamp: str, drive_link: str, email: str) -> str:
-    raw = f"{timestamp}|{drive_link}|{email}".encode("utf-8")
-    return hashlib.sha256(raw).hexdigest()
+def make_submission_id(file_bytes: bytes) -> str:
+    return hashlib.sha256(file_bytes).hexdigest()
 
 
-def ensure_processed_sheet(spreadsheet: gspread.Spreadsheet, sheet_name: str) -> gspread.Worksheet:
+def make_link_submission_id(drive_link: str) -> str:
+    normalized_link = drive_link.strip()
+    return hashlib.sha256(f"link:{normalized_link}".encode("utf-8")).hexdigest()
+
+
+def ensure_processed_sheet(
+    spreadsheet: gspread.Spreadsheet,
+    sheet_name: str,
+) -> gspread.Worksheet:
     try:
-        ws = spreadsheet.worksheet(sheet_name)
+        worksheet = spreadsheet.worksheet(sheet_name)
     except gspread.WorksheetNotFound:
         logging.info("Processed sheet '%s' not found, creating it.", sheet_name)
-        ws = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=30)
+        worksheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=30)
 
-    current_headers = ws.row_values(1)
+    current_headers = worksheet.row_values(1)
     if current_headers != PROCESSED_HEADERS:
-        ws.update(values=[PROCESSED_HEADERS], range_name="A1:Q1")
+        worksheet.update(values=[PROCESSED_HEADERS], range_name="A1:U1")
 
-    return ws
+    return worksheet
+
+def normalize_operation_number(value: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", value.strip().lower())
 
 
-def get_existing_submission_ids(processed_ws: gspread.Worksheet) -> set[str]:
+def get_processed_sheet_indexes(
+    processed_ws: gspread.Worksheet,
+) -> tuple[set[str], set[str], set[str]]:
     values = processed_ws.get_all_values()
     if len(values) <= 1:
-        return set()
+        return set(), set(), set()
 
     header = values[0]
     try:
-        idx = header.index("submission_id")
+        submission_id_index = header.index("submission_id")
     except ValueError:
-        return set()
+        submission_id_index = -1
 
-    existing_ids: set[str] = set()
+    try:
+        drive_file_id_index = header.index("voucher_drive_file_id")
+    except ValueError:
+        drive_file_id_index = -1
+
+    try:
+        operation_number_index = header.index("extracted_operation_number")
+    except ValueError:
+        operation_number_index = -1
+
+    submission_ids: set[str] = set()
+    drive_file_ids: set[str] = set()
+    operation_numbers: set[str] = set()
+
     for row in values[1:]:
-        if idx < len(row) and row[idx].strip():
-            existing_ids.add(row[idx].strip())
+        if submission_id_index != -1 and submission_id_index < len(row):
+            submission_id = row[submission_id_index].strip()
+            if submission_id:
+                submission_ids.add(submission_id)
 
-    return existing_ids
+        if drive_file_id_index != -1 and drive_file_id_index < len(row):
+            drive_file_id = row[drive_file_id_index].strip()
+            if drive_file_id:
+                drive_file_ids.add(drive_file_id)
+
+        if operation_number_index != -1 and operation_number_index < len(row):
+            normalized = normalize_operation_number(row[operation_number_index])
+            if normalized:
+                operation_numbers.add(normalized)
+
+    return submission_ids, drive_file_ids, operation_numbers
+
+
+def split_drive_links(raw_value: str) -> list[str]:
+    return [link.strip() for link in raw_value.split(",") if link.strip()]
+
+
+def build_pending_submissions(
+    raw_rows: list[dict[str, str]],
+    existing_submission_ids: set[str],
+    existing_drive_file_ids: set[str],
+) -> list[PendingSubmission]:
+    pending: list[PendingSubmission] = []
+
+    for row in raw_rows:
+        timestamp = row.get("timestamp", "")
+        drive_links = split_drive_links(row.get("comprobante yape", ""))
+        email = row.get("email address", "")
+        raw_row_number = row.get("_raw_row_number", "")
+
+        for link_index, drive_link in enumerate(drive_links):
+            fallback_submission_id = make_link_submission_id(drive_link)
+            try:
+                drive_file_id = extract_drive_file_id(drive_link)
+            except Exception:
+                if fallback_submission_id in existing_submission_ids:
+                    logging.info(
+                        "Skipping previously recorded invalid link in raw row %s: %s",
+                        raw_row_number,
+                        drive_link,
+                    )
+                    continue
+                drive_file_id = None
+            else:
+                if drive_file_id in existing_drive_file_ids:
+                    logging.info(
+                        "Skipping already processed file_id %s from raw row %s.",
+                        drive_file_id,
+                        raw_row_number,
+                    )
+                    continue
+
+            pending.append(
+                PendingSubmission(
+                    drive_file_id=drive_file_id,
+                    link_index=link_index,
+                    raw_row_number=raw_row_number,
+                    timestamp=timestamp,
+                    email=email,
+                    drive_link=drive_link,
+                )
+            )
+
+    return pending
 
 
 def extract_drive_file_id(drive_link: str) -> str:
@@ -182,8 +458,14 @@ def extract_drive_file_id(drive_link: str) -> str:
     raise ValueError("Could not extract Google Drive file ID from link.")
 
 
-def download_drive_file_bytes(drive_client: Any, file_id: str) -> bytes:
-    request = drive_client.files().get_media(fileId=file_id)
+def fetch_drive_document(drive_client: Any, file_id: str) -> DriveDocument:
+    metadata = drive_client.files().get(
+        fileId=file_id,
+        fields="id,name,mimeType",
+        supportsAllDrives=True,
+    ).execute()
+
+    request = drive_client.files().get_media(fileId=file_id, supportsAllDrives=True)
     buffer = io.BytesIO()
     downloader = MediaIoBaseDownload(buffer, request)
 
@@ -191,46 +473,189 @@ def download_drive_file_bytes(drive_client: Any, file_id: str) -> bytes:
     while not done:
         _, done = downloader.next_chunk()
 
-    buffer.seek(0)
-    return buffer.read()
-
-
-def build_prompt() -> str:
-    return (
-        "Extract data from this Yape voucher image. "
-        "If a field is missing or unclear, return null."
+    return DriveDocument(
+        file_id=file_id,
+        file_name=metadata.get("name") or f"{file_id}.bin",
+        mime_type=metadata.get("mimeType") or "application/octet-stream",
+        content=buffer.getvalue(),
     )
 
 
-def call_openai_extract(openai_client: OpenAI, model: str, image_bytes: bytes) -> tuple[VoucherExtraction, str]:
-    # Structured outputs via Responses API + Pydantic schema.
-    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    image_data_url = f"data:image/jpeg;base64,{image_b64}"
-    response = openai_client.responses.parse(
-        model=model,
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "input_text", "text": build_prompt()},
-                    {"type": "input_image", "image_url": image_data_url},
-                ],
-            }
-        ],
-        text_format=VoucherExtraction,
-    )
+def build_response_input(document: DriveDocument) -> list[dict[str, Any]]:
+    encoded_document = base64.b64encode(document.content).decode("utf-8")
 
-    parsed = response.output_parsed
-    if parsed is None:
-        raise ValueError("Model returned no structured output.")
-
-    if isinstance(parsed, VoucherExtraction):
-        schema_result = parsed
+    if document.mime_type.startswith("image/"):
+        document_part: dict[str, Any] = {
+            "type": "input_image",
+            "image_url": f"data:{document.mime_type};base64,{encoded_document}",
+        }
     else:
-        schema_result = VoucherExtraction.model_validate(parsed)
+        document_part = {
+            "type": "input_file",
+            "filename": document.file_name,
+            "file_data": f"data:{document.mime_type};base64,{encoded_document}",
+        }
 
-    raw_json = json.dumps(schema_result.model_dump(), ensure_ascii=False)
-    return schema_result, raw_json
+    return [
+        {
+            "role": "system",
+            "content": [{"type": "input_text", "text": EXTRACTION_SYSTEM_PROMPT}],
+        },
+        {
+            "role": "user",
+            "content": [
+                document_part,
+                {"type": "input_text", "text": EXTRACTION_USER_PROMPT},
+            ],
+        },
+    ]
+
+
+def is_retryable_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    if "unsupported_file" in message or "file type you uploaded is not supported" in message:
+        return False
+
+    try:
+        import openai
+
+        if isinstance(
+            exc,
+            (
+                openai.RateLimitError,
+                openai.APIConnectionError,
+                openai.APITimeoutError,
+                openai.InternalServerError,
+                openai.APIError,
+            ),
+        ):
+            return True
+    except Exception:
+        pass
+
+    try:
+        import httpx
+
+        if isinstance(
+            exc,
+            (
+                httpx.ConnectError,
+                httpx.ReadTimeout,
+                httpx.WriteError,
+                httpx.RemoteProtocolError,
+                getattr(httpx, "PoolTimeout", tuple()),
+            ),
+        ):
+            return True
+    except Exception:
+        pass
+
+    status = getattr(exc, "status", None) or getattr(exc, "status_code", None)
+    if isinstance(status, int) and (
+        status == 429 or status in (408, 502, 503, 504) or status >= 500
+    ):
+        return True
+
+    return isinstance(exc, (TimeoutError, ConnectionError))
+
+
+def normalize_usage(usage: Any) -> OpenAIUsage:
+    if usage is None:
+        return OpenAIUsage()
+
+    if hasattr(usage, "model_dump"):
+        usage_dict = usage.model_dump()
+    elif isinstance(usage, dict):
+        usage_dict = usage
+    else:
+        usage_dict = {
+            "input_tokens": getattr(usage, "input_tokens", None),
+            "output_tokens": getattr(usage, "output_tokens", None),
+            "total_tokens": getattr(usage, "total_tokens", None),
+            "input_tokens_details": getattr(usage, "input_tokens_details", None),
+        }
+
+    input_details = usage_dict.get("input_tokens_details") or {}
+    if hasattr(input_details, "model_dump"):
+        input_details = input_details.model_dump()
+
+    return OpenAIUsage(
+        input_tokens=usage_dict.get("input_tokens"),
+        cached_input_tokens=input_details.get("cached_tokens"),
+        output_tokens=usage_dict.get("output_tokens"),
+        total_tokens=usage_dict.get("total_tokens"),
+    )
+
+
+def normalize_currency(value: str | None) -> str | None:
+    if value is None:
+        return None
+
+    normalized = value.strip().upper()
+    if not normalized:
+        return None
+
+    if normalized in {"PEN", "S/.", "S/", "SOLES", "SOL", "NUEVOS SOLES", "NUEVO SOL"}:
+        return "PEN"
+
+    return normalized
+
+
+def call_openai_extract(
+    openai_client: OpenAI,
+    model: str,
+    document: DriveDocument,
+    *,
+    max_attempts: int,
+) -> tuple[VoucherExtraction, OpenAIUsage]:
+    retry_count = 0
+    messages = build_response_input(document)
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            response = openai_client.responses.parse(
+                model=model,
+                input=messages,
+                text_format=VoucherExtraction,
+            )
+            parsed = response.output_parsed
+            if parsed is None:
+                raise ValueError("Model returned no structured output.")
+
+            extraction = (
+                parsed
+                if isinstance(parsed, VoucherExtraction)
+                else VoucherExtraction.model_validate(parsed)
+            )
+            extraction = extraction.model_copy(
+                update={"currency": normalize_currency(extraction.currency)}
+            )
+            usage = normalize_usage(getattr(response, "usage", None))
+            usage = OpenAIUsage(
+                input_tokens=usage.input_tokens,
+                cached_input_tokens=usage.cached_input_tokens,
+                output_tokens=usage.output_tokens,
+                total_tokens=usage.total_tokens,
+                retry_count=retry_count,
+            )
+            return extraction, usage
+        except Exception as exc:
+            if attempt >= max_attempts or not is_retryable_error(exc):
+                raise ExtractionCallError(str(exc), retry_count=retry_count) from exc
+
+            retry_count += 1
+            sleep_seconds = min(10.0, (2 ** (attempt - 1)) + random.uniform(0.0, 1.0))
+            logging.warning(
+                "Transient extraction error for file %s on attempt %s/%s: %s. Retrying in %.2fs.",
+                document.file_name,
+                attempt,
+                max_attempts,
+                exc,
+                sleep_seconds,
+            )
+            time.sleep(sleep_seconds)
+
+    raise RuntimeError("OpenAI extraction retry loop exited unexpectedly.")
 
 
 def now_utc_iso() -> str:
@@ -240,132 +665,258 @@ def now_utc_iso() -> str:
 def row_from_result(
     *,
     submission_id: str,
-    raw_row_number: str,
-    timestamp: str,
-    email: str,
-    drive_link: str,
+    submission: PendingSubmission,
     drive_file_id: str,
     openai_model: str,
     status: str,
     error_message: str,
-    raw_openai_json: str,
     extracted: VoucherExtraction | None = None,
+    usage: OpenAIUsage | None = None,
 ) -> list[str]:
-    extracted = extracted or VoucherExtraction()
-
-    result_map = {col: "" for col in PROCESSED_HEADERS}
+    extraction = extracted or VoucherExtraction()
+    usage = usage or OpenAIUsage()
+    result_map = {column: "" for column in PROCESSED_HEADERS}
     result_map["submission_id"] = submission_id
-    result_map["raw_row_number"] = raw_row_number
-    result_map["raw_timestamp"] = timestamp
-    result_map["uploader_email"] = email
-    result_map["voucher_drive_link"] = drive_link
+    result_map["raw_row_number"] = submission.raw_row_number
+    result_map["raw_timestamp"] = submission.timestamp
+    result_map["uploader_email"] = submission.email
+    result_map["voucher_drive_link"] = submission.drive_link
     result_map["voucher_drive_file_id"] = drive_file_id
-    result_map["extracted_operation_number"] = extracted.operation_number or ""
-    result_map["extracted_amount"] = extracted.amount or ""
-    result_map["extracted_currency"] = extracted.currency or ""
-    result_map["extracted_date"] = extracted.date or ""
-    result_map["extracted_time"] = extracted.time or ""
-    result_map["extracted_phone_or_recipient"] = extracted.phone_or_recipient or ""
+    result_map["extracted_operation_number"] = extraction.operation_number or ""
+    result_map["extracted_amount"] = "" if extraction.amount is None else extraction.amount
+    result_map["extracted_currency"] = extraction.currency or ""
+    result_map["extracted_date"] = extraction.date or ""
+    result_map["extracted_time"] = extraction.time or ""
+    result_map["extracted_phone_or_recipient"] = extraction.phone_or_recipient or ""
     result_map["openai_model"] = openai_model
+    result_map["openai_input_tokens"] = "" if usage.input_tokens is None else str(usage.input_tokens)
+    result_map["openai_cached_input_tokens"] = (
+        "" if usage.cached_input_tokens is None else str(usage.cached_input_tokens)
+    )
+    result_map["openai_output_tokens"] = "" if usage.output_tokens is None else str(usage.output_tokens)
+    result_map["openai_total_tokens"] = "" if usage.total_tokens is None else str(usage.total_tokens)
+    result_map["openai_retry_count"] = str(usage.retry_count)
     result_map["processed_at_utc"] = now_utc_iso()
     result_map["status"] = status
     result_map["error_message"] = error_message
-    result_map["raw_openai_json"] = raw_openai_json
-
-    return [result_map[h] for h in PROCESSED_HEADERS]
+    return [result_map[header] for header in PROCESSED_HEADERS]
 
 
-def process_one_row(
-    *,
-    row: dict[str, str],
-    existing_ids: set[str],
-    drive_client: Any,
-    openai_client: OpenAI,
-    openai_model: str,
+def process_submission(
+    submission: PendingSubmission,
+    config: AppConfig,
+    dedupe_state: DedupeState,
 ) -> list[str] | None:
-    timestamp = row.get("timestamp", "")
-    drive_link = row.get("comprobante yape", "")
-    email = row.get("email address", "")
-    raw_row_number = row.get("_raw_row_number", "")
-
-    submission_id = make_submission_id(timestamp, drive_link, email)
-    if submission_id in existing_ids:
-        return None
+    drive_file_id = submission.drive_file_id or ""
+    fallback_submission_id = make_link_submission_id(submission.drive_link)
+    submission_id = fallback_submission_id
 
     try:
-        file_id = extract_drive_file_id(drive_link)
-        image_bytes = download_drive_file_bytes(drive_client, file_id)
-        extracted, raw_openai_json = call_openai_extract(openai_client, openai_model, image_bytes)
+        if submission.drive_file_id is None:
+            with dedupe_state.lock:
+                if fallback_submission_id in dedupe_state.submission_ids:
+                    return row_from_result(
+                        submission_id=fallback_submission_id,
+                        submission=submission,
+                        drive_file_id="",
+                        openai_model=config.openai_model,
+                        status="duplicate_invalid_link",
+                        error_message="This invalid Drive link was already recorded.",
+                    )
+                dedupe_state.submission_ids.add(fallback_submission_id)
+
+            return row_from_result(
+                submission_id=fallback_submission_id,
+                submission=submission,
+                drive_file_id="",
+                openai_model=config.openai_model,
+                status="invalid_drive_link",
+                error_message="Could not extract a Google Drive file ID from the provided link.",
+            )
+
+        drive_client, openai_client = get_worker_clients(config)
+        document = fetch_drive_document(drive_client, submission.drive_file_id)
+        submission_id = make_submission_id(document.content)
+
+        with dedupe_state.lock:
+            if submission_id in dedupe_state.submission_ids:
+                return row_from_result(
+                    submission_id=submission_id,
+                    submission=submission,
+                    drive_file_id=drive_file_id,
+                    openai_model=config.openai_model,
+                    status="duplicate_file_content",
+                    error_message="This file's content matches a voucher that was already processed.",
+                )
+            dedupe_state.submission_ids.add(submission_id)
+
+        extraction, usage = call_openai_extract(
+            openai_client,
+            config.openai_model,
+            document,
+            max_attempts=config.openai_max_attempts,
+        )
+
+        normalized_operation_number = normalize_operation_number(extraction.operation_number or "")
+        if not normalized_operation_number:
+            return row_from_result(
+                submission_id=submission_id,
+                submission=submission,
+                drive_file_id=drive_file_id,
+                openai_model=config.openai_model,
+                status="blank_operation_number",
+                error_message="Extraction succeeded but operation number is blank or unreadable.",
+                extracted=extraction,
+                usage=usage,
+            )
+
+        with dedupe_state.lock:
+            if normalized_operation_number in dedupe_state.operation_numbers:
+                return row_from_result(
+                    submission_id=submission_id,
+                    submission=submission,
+                    drive_file_id=drive_file_id,
+                    openai_model=config.openai_model,
+                    status="duplicate_operation_number",
+                    error_message=(
+                        f"Operation number already processed: {extraction.operation_number}"
+                    ),
+                    extracted=extraction,
+                    usage=usage,
+                )
+            dedupe_state.operation_numbers.add(normalized_operation_number)
 
         return row_from_result(
             submission_id=submission_id,
-            raw_row_number=raw_row_number,
-            timestamp=timestamp,
-            email=email,
-            drive_link=drive_link,
-            drive_file_id=file_id,
-            openai_model=openai_model,
+            submission=submission,
+            drive_file_id=drive_file_id,
+            openai_model=config.openai_model,
             status="ok",
             error_message="",
-            raw_openai_json=raw_openai_json,
-            extracted=extracted,
+            extracted=extraction,
+            usage=usage,
         )
     except Exception as exc:
-        file_id = ""
-        try:
-            file_id = extract_drive_file_id(drive_link)
-        except Exception:
-            pass
-
+        retry_count = exc.retry_count if isinstance(exc, ExtractionCallError) else 0
+        logging.exception(
+            "Failed processing raw row %s, file_id %s.",
+            submission.raw_row_number,
+            drive_file_id,
+        )
         return row_from_result(
             submission_id=submission_id,
-            raw_row_number=raw_row_number,
-            timestamp=timestamp,
-            email=email,
-            drive_link=drive_link,
-            drive_file_id=file_id,
-            openai_model=openai_model,
-            status="error",
+            submission=submission,
+            drive_file_id=drive_file_id,
+            openai_model=config.openai_model,
+            status="processing_error",
             error_message=str(exc),
-            raw_openai_json="",
+            usage=OpenAIUsage(retry_count=retry_count),
         )
+
+
+def process_submissions_in_parallel(
+    submissions: list[PendingSubmission],
+    config: AppConfig,
+    dedupe_state: DedupeState,
+) -> list[list[str]]:
+    completed_results: list[tuple[PendingSubmission, list[str]]] = []
+
+    with ThreadPoolExecutor(max_workers=config.max_workers) as executor:
+        futures = {
+            executor.submit(process_submission, submission, config, dedupe_state): submission
+            for submission in submissions
+        }
+
+        for future in as_completed(futures):
+            submission = futures[future]
+            row = future.result()
+            if row is None:
+                continue
+            completed_results.append((submission, row))
+            logging.info(
+                "Completed raw row %s with status '%s'.",
+                submission.raw_row_number,
+                row[PROCESSED_HEADERS.index("status")],
+            )
+
+    completed_results.sort(key=lambda item: (int(item[0].raw_row_number), item[0].link_index))
+    return [row for _, row in completed_results]
+
+
+def sort_rows_for_append(rows: list[list[str]]) -> list[list[str]]:
+    date_index = PROCESSED_HEADERS.index("extracted_date")
+    time_index = PROCESSED_HEADERS.index("extracted_time")
+    raw_row_index = PROCESSED_HEADERS.index("raw_row_number")
+
+    def sort_key(row: list[str]) -> tuple[int, str, str, int]:
+        extracted_date = str(row[date_index]).strip()
+        extracted_time = str(row[time_index]).strip()
+        has_complete_datetime = bool(extracted_date and extracted_time)
+        raw_row_number = int(str(row[raw_row_index]).strip() or "0")
+
+        return (
+            0 if has_complete_datetime else 1,
+            extracted_date if has_complete_datetime else "",
+            extracted_time if has_complete_datetime else "",
+            raw_row_number,
+        )
+
+    return sorted(rows, key=sort_key)
 
 
 def main() -> None:
     configure_logging()
     config = load_config()
 
-    sheets_client, drive_client = get_google_clients(config["service_account_file"])
-    spreadsheet = sheets_client.open_by_key(config["spreadsheet_id"])
-    raw_ws = spreadsheet.worksheet(config["raw_sheet_name"])
-    processed_ws = ensure_processed_sheet(spreadsheet, config["processed_sheet_name"])
+    credentials = build_google_credentials(config.service_account_file)
+    sheets_client = get_sheets_client(credentials)
+    spreadsheet = sheets_client.open_by_key(config.spreadsheet_id)
+
+    raw_ws = spreadsheet.worksheet(config.raw_sheet_name)
+    processed_ws = ensure_processed_sheet(spreadsheet, config.processed_sheet_name)
 
     raw_rows = get_raw_rows(raw_ws)
-    existing_ids = get_existing_submission_ids(processed_ws)
-    openai_client = OpenAI(api_key=config["openai_api_key"])
-
-    rows_to_append: list[list[str]] = []
+    existing_ids, existing_drive_file_ids, existing_operation_numbers = (
+        get_processed_sheet_indexes(processed_ws)
+    )
+    pending_submissions = build_pending_submissions(
+        raw_rows,
+        existing_ids,
+        existing_drive_file_ids,
+    )
+    dedupe_state = DedupeState(
+        submission_ids=set(existing_ids),
+        operation_numbers=set(existing_operation_numbers),
+        lock=threading.Lock(),
+    )
 
     logging.info("Raw rows found: %s", len(raw_rows))
-    logging.info("Already processed IDs: %s", len(existing_ids))
+    logging.info("Already processed submissions: %s", len(existing_ids))
+    logging.info("Already processed drive file IDs: %s", len(existing_drive_file_ids))
+    logging.info("Already processed operation numbers: %s", len(existing_operation_numbers))
+    logging.info("Pending submissions: %s", len(pending_submissions))
+    logging.info("Using model '%s' with max_workers=%s.", config.openai_model, config.max_workers)
 
-    for row in raw_rows:
-        result_row = process_one_row(
-            row=row,
-            existing_ids=existing_ids,
-            drive_client=drive_client,
-            openai_client=openai_client,
-            openai_model=config["openai_model"],
-        )
-        if result_row is not None:
-            rows_to_append.append(result_row)
-            existing_ids.add(result_row[0])
-
-    if rows_to_append:
-        processed_ws.append_rows(rows_to_append, value_input_option="RAW")
-        logging.info("Appended %s new rows into '%s'.", len(rows_to_append), config["processed_sheet_name"])
-    else:
+    if not pending_submissions:
         logging.info("No new submissions to process.")
+        return
+
+    rows_to_append = process_submissions_in_parallel(
+        pending_submissions,
+        config,
+        dedupe_state,
+    )
+    if not rows_to_append:
+        logging.info("No rows remained after parallel dedupe filtering.")
+        return
+
+    rows_to_append = sort_rows_for_append(rows_to_append)
+    processed_ws.append_rows(rows_to_append, value_input_option="RAW")
+    logging.info(
+        "Appended %s processed rows into '%s'.",
+        len(rows_to_append),
+        config.processed_sheet_name,
+    )
 
 
 if __name__ == "__main__":
