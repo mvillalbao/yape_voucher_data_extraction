@@ -163,6 +163,12 @@ class UpdateSummary:
     rows_requiring_review: int
 
 
+@dataclass(frozen=True)
+class ProcessedDatasetView:
+    total_rows: int
+    rows: list[dict[str, Any]]
+
+
 class VoucherExtraction(BaseModel):
     """Structured voucher data returned by the model."""
 
@@ -930,6 +936,31 @@ def count_rows_by_status(rows: list[list[str]]) -> dict[str, int]:
         counts[status] = counts.get(status, 0) + 1
 
     return counts
+
+
+def fetch_processed_dataset() -> ProcessedDatasetView:
+    configure_logging()
+    config = load_config()
+
+    credentials = build_google_credentials(
+        service_account_file=config.service_account_file,
+        service_account_json=config.service_account_json,
+    )
+    sheets_client = get_sheets_client(credentials)
+    spreadsheet = sheets_client.open_by_key(config.spreadsheet_id)
+    processed_ws = ensure_processed_sheet(spreadsheet, config.processed_sheet_name)
+
+    values = processed_ws.get_all_values()
+    if len(values) <= 1:
+        return ProcessedDatasetView(total_rows=0, rows=[])
+
+    headers = values[0]
+    rows: list[dict[str, Any]] = []
+    for row in values[1:]:
+        padded_row = row + [""] * (len(headers) - len(row))
+        rows.append({headers[index]: padded_row[index] for index in range(len(headers))})
+
+    return ProcessedDatasetView(total_rows=len(rows), rows=rows)
 
 
 def run_update() -> UpdateSummary:
