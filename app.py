@@ -178,7 +178,7 @@ def show_dataset_dialog() -> None:
             df,
             use_container_width=True,
             hide_index=True,
-            height=300,
+            height=420,
             column_config={
                 "Comprobante": st.column_config.LinkColumn("Comprobante"),
                 "Monto": st.column_config.NumberColumn("Monto", format="%.2f"),
