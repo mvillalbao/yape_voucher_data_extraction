@@ -99,6 +99,12 @@ def show_update_dialog() -> None:
 
 @st.dialog("Base procesada", width="large")
 def show_dataset_dialog() -> None:
+    _, close_col = st.columns([4, 1])
+    with close_col:
+        if st.button("Cerrar", use_container_width=True, key="close_dataset_dialog_top"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+
     try:
         with st.spinner("Cargando base procesada..."):
             dataset = fetch_processed_dataset()
@@ -111,18 +117,6 @@ def show_dataset_dialog() -> None:
         st.stop()
 
     df = pd.DataFrame(dataset.rows)
-    controls_col, close_col = st.columns([4, 1])
-    with controls_col:
-        summary_visible = st.toggle(
-            "Mostrar resumen de la base",
-            value=st.session_state.get("dataset_summary_visible", False),
-            key="dataset_summary_visible",
-        )
-    with close_col:
-        if st.button("Cerrar", use_container_width=True, key="close_dataset_dialog_top"):
-            st.session_state["active_dialog"] = None
-            st.rerun()
-
     if df.empty:
         st.info("La base procesada todavía no tiene registros.")
     else:
@@ -142,9 +136,7 @@ def show_dataset_dialog() -> None:
         df["extracted_amount"] = pd.to_numeric(df["extracted_amount"], errors="coerce")
 
         status_counts = df["status"].value_counts(dropna=False).to_dict()
-        if summary_visible:
-            summary_container = st.container(border=True)
-            with summary_container:
+        with st.expander("Resumen de la base", expanded=False):
                 c1, c2, c3 = st.columns(3)
                 c1.metric("Total de filas", dataset.total_rows)
                 c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
@@ -186,12 +178,11 @@ def show_dataset_dialog() -> None:
             }
         )
 
-        table_height = 320 if summary_visible else 460
         st.dataframe(
             df,
             use_container_width=True,
             hide_index=True,
-            height=table_height,
+            height=420,
             column_config={
                 "Comprobante": st.column_config.LinkColumn("Comprobante"),
                 "Monto": st.column_config.NumberColumn("Monto", format="%.2f"),
