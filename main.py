@@ -151,15 +151,16 @@ class OpenAIUsage:
 
 @dataclass(frozen=True)
 class UpdateSummary:
-    raw_rows_found: int
-    already_processed_submissions: int
-    already_processed_drive_file_ids: int
-    already_processed_operation_numbers: int
-    pending_submissions: int
+    dataset_size_before_update: int
+    total_submissions_to_analyze: int
     appended_rows: int
-    processed_sheet_name: str
-    openai_model: str
-    max_workers: int
+    accepted_rows: int
+    blank_operation_number_rows: int
+    duplicate_operation_number_rows: int
+    duplicate_file_content_rows: int
+    invalid_link_rows: int
+    processing_error_rows: int
+    rows_requiring_review: int
 
 
 class VoucherExtraction(BaseModel):
@@ -409,10 +410,10 @@ def normalize_operation_number(value: str) -> str:
 
 def get_processed_sheet_indexes(
     processed_ws: gspread.Worksheet,
-) -> tuple[set[str], set[str], set[str]]:
+) -> tuple[set[str], set[str], set[str], int]:
     values = processed_ws.get_all_values()
     if len(values) <= 1:
-        return set(), set(), set()
+        return set(), set(), set(), 0
 
     header = values[0]
     try:
@@ -450,7 +451,7 @@ def get_processed_sheet_indexes(
             if normalized:
                 operation_numbers.add(normalized)
 
-    return submission_ids, drive_file_ids, operation_numbers
+    return submission_ids, drive_file_ids, operation_numbers, len(values) - 1
 
 
 def split_drive_links(raw_value: str) -> list[str]:
@@ -920,6 +921,17 @@ def sort_rows_for_append(rows: list[list[str]]) -> list[list[str]]:
     return sorted(rows, key=sort_key)
 
 
+def count_rows_by_status(rows: list[list[str]]) -> dict[str, int]:
+    status_index = PROCESSED_HEADERS.index("status")
+    counts: dict[str, int] = {}
+
+    for row in rows:
+        status = str(row[status_index]).strip()
+        counts[status] = counts.get(status, 0) + 1
+
+    return counts
+
+
 def run_update() -> UpdateSummary:
     configure_logging()
     config = load_config()
@@ -935,7 +947,7 @@ def run_update() -> UpdateSummary:
     processed_ws = ensure_processed_sheet(spreadsheet, config.processed_sheet_name)
 
     raw_rows = get_raw_rows(raw_ws)
-    existing_ids, existing_drive_file_ids, existing_operation_numbers = (
+    existing_ids, existing_drive_file_ids, existing_operation_numbers, dataset_size_before_update = (
         get_processed_sheet_indexes(processed_ws)
     )
     pending_submissions = build_pending_submissions(
@@ -959,15 +971,16 @@ def run_update() -> UpdateSummary:
     if not pending_submissions:
         logging.info("No new submissions to process.")
         return UpdateSummary(
-            raw_rows_found=len(raw_rows),
-            already_processed_submissions=len(existing_ids),
-            already_processed_drive_file_ids=len(existing_drive_file_ids),
-            already_processed_operation_numbers=len(existing_operation_numbers),
-            pending_submissions=len(pending_submissions),
+            dataset_size_before_update=dataset_size_before_update,
+            total_submissions_to_analyze=len(pending_submissions),
             appended_rows=0,
-            processed_sheet_name=config.processed_sheet_name,
-            openai_model=config.openai_model,
-            max_workers=config.max_workers,
+            accepted_rows=0,
+            blank_operation_number_rows=0,
+            duplicate_operation_number_rows=0,
+            duplicate_file_content_rows=0,
+            invalid_link_rows=0,
+            processing_error_rows=0,
+            rows_requiring_review=0,
         )
 
     rows_to_append = process_submissions_in_parallel(
@@ -978,18 +991,20 @@ def run_update() -> UpdateSummary:
     if not rows_to_append:
         logging.info("No rows remained after parallel dedupe filtering.")
         return UpdateSummary(
-            raw_rows_found=len(raw_rows),
-            already_processed_submissions=len(existing_ids),
-            already_processed_drive_file_ids=len(existing_drive_file_ids),
-            already_processed_operation_numbers=len(existing_operation_numbers),
-            pending_submissions=len(pending_submissions),
+            dataset_size_before_update=dataset_size_before_update,
+            total_submissions_to_analyze=len(pending_submissions),
             appended_rows=0,
-            processed_sheet_name=config.processed_sheet_name,
-            openai_model=config.openai_model,
-            max_workers=config.max_workers,
+            accepted_rows=0,
+            blank_operation_number_rows=0,
+            duplicate_operation_number_rows=0,
+            duplicate_file_content_rows=0,
+            invalid_link_rows=0,
+            processing_error_rows=0,
+            rows_requiring_review=0,
         )
 
     rows_to_append = sort_rows_for_append(rows_to_append)
+    status_counts = count_rows_by_status(rows_to_append)
     processed_ws.append_rows(rows_to_append, value_input_option="RAW")
     logging.info(
         "Appended %s processed rows into '%s'.",
@@ -997,15 +1012,25 @@ def run_update() -> UpdateSummary:
         config.processed_sheet_name,
     )
     return UpdateSummary(
-        raw_rows_found=len(raw_rows),
-        already_processed_submissions=len(existing_ids),
-        already_processed_drive_file_ids=len(existing_drive_file_ids),
-        already_processed_operation_numbers=len(existing_operation_numbers),
-        pending_submissions=len(pending_submissions),
+        dataset_size_before_update=dataset_size_before_update,
+        total_submissions_to_analyze=len(pending_submissions),
         appended_rows=len(rows_to_append),
-        processed_sheet_name=config.processed_sheet_name,
-        openai_model=config.openai_model,
-        max_workers=config.max_workers,
+        accepted_rows=status_counts.get("ok", 0),
+        blank_operation_number_rows=status_counts.get("blank_operation_number", 0),
+        duplicate_operation_number_rows=status_counts.get("duplicate_operation_number", 0),
+        duplicate_file_content_rows=status_counts.get("duplicate_file_content", 0),
+        invalid_link_rows=(
+            status_counts.get("invalid_drive_link", 0)
+            + status_counts.get("duplicate_invalid_link", 0)
+        ),
+        processing_error_rows=status_counts.get("processing_error", 0),
+        rows_requiring_review=(
+            status_counts.get("blank_operation_number", 0)
+            + status_counts.get("duplicate_operation_number", 0)
+            + status_counts.get("invalid_drive_link", 0)
+            + status_counts.get("duplicate_invalid_link", 0)
+            + status_counts.get("processing_error", 0)
+        ),
     )
 
 

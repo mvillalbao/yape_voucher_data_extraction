@@ -55,12 +55,16 @@ if st.button("Actualizar Google Sheets", type="primary", use_container_width=Tru
             st.code(traceback.format_exc(), language="text")
         else:
             st.success("Actualización completada.")
-            st.write(f"Hoja procesada: `{summary.processed_sheet_name}`")
-            st.write(f"Modelo: `{summary.openai_model}`")
-            st.write(f"Máximo de workers: `{summary.max_workers}`")
-            st.write(f"Filas crudas encontradas: `{summary.raw_rows_found}`")
-            st.write(f"Observaciones pendientes: `{summary.pending_submissions}`")
-            st.write(f"Filas agregadas: `{summary.appended_rows}`")
+            st.write(f"Tamaño total de la base antes de actualizar: `{summary.dataset_size_before_update}`")
+            st.write(f"Total de comprobantes detectados para analizar: `{summary.total_submissions_to_analyze}`")
+            st.write(f"Nuevas filas agregadas: `{summary.appended_rows}`")
+            st.write(f"Comprobantes aceptados: `{summary.accepted_rows}`")
+            st.write(f"Comprobantes que requieren revisión: `{summary.rows_requiring_review}`")
+            st.write(f"Comprobantes con operación en blanco: `{summary.blank_operation_number_rows}`")
+            st.write(f"Comprobantes duplicados por número de operación: `{summary.duplicate_operation_number_rows}`")
+            st.write(f"Comprobantes duplicados por contenido: `{summary.duplicate_file_content_rows}`")
+            st.write(f"Links inválidos: `{summary.invalid_link_rows}`")
+            st.write(f"Errores de procesamiento: `{summary.processing_error_rows}`")
 
 if st.button("Cerrar sesión", use_container_width=True):
     st.session_state["authenticated"] = False
