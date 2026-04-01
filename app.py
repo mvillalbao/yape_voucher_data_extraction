@@ -111,6 +111,18 @@ def show_dataset_dialog() -> None:
         st.stop()
 
     df = pd.DataFrame(dataset.rows)
+    controls_col, close_col = st.columns([4, 1])
+    with controls_col:
+        summary_visible = st.toggle(
+            "Mostrar resumen de la base",
+            value=st.session_state.get("dataset_summary_visible", False),
+            key="dataset_summary_visible",
+        )
+    with close_col:
+        if st.button("Cerrar", use_container_width=True, key="close_dataset_dialog_top"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+
     if df.empty:
         st.info("La base procesada todavía no tiene registros.")
     else:
@@ -130,20 +142,22 @@ def show_dataset_dialog() -> None:
         df["extracted_amount"] = pd.to_numeric(df["extracted_amount"], errors="coerce")
 
         status_counts = df["status"].value_counts(dropna=False).to_dict()
-        with st.expander("Resumen de la base", expanded=False):
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Total de filas", dataset.total_rows)
-            c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
-            c3.metric(
-                "Requieren revisión",
-                int(
-                    status_counts.get("blank_operation_number", 0)
-                    + status_counts.get("duplicate_operation_number", 0)
-                    + status_counts.get("invalid_drive_link", 0)
-                    + status_counts.get("duplicate_invalid_link", 0)
-                    + status_counts.get("processing_error", 0)
-                ),
-            )
+        if summary_visible:
+            summary_container = st.container(border=True)
+            with summary_container:
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Total de filas", dataset.total_rows)
+                c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
+                c3.metric(
+                    "Requieren revisión",
+                    int(
+                        status_counts.get("blank_operation_number", 0)
+                        + status_counts.get("duplicate_operation_number", 0)
+                        + status_counts.get("invalid_drive_link", 0)
+                        + status_counts.get("duplicate_invalid_link", 0)
+                        + status_counts.get("processing_error", 0)
+                    ),
+                )
 
         available_statuses = sorted([status for status in df["status"].dropna().unique().tolist() if status])
         selected_statuses = st.multiselect(
@@ -172,21 +186,18 @@ def show_dataset_dialog() -> None:
             }
         )
 
+        table_height = 320 if summary_visible else 460
         st.dataframe(
             df,
             use_container_width=True,
             hide_index=True,
-            height=460,
+            height=table_height,
             column_config={
                 "Comprobante": st.column_config.LinkColumn("Comprobante"),
                 "Monto": st.column_config.NumberColumn("Monto", format="%.2f"),
                 "Detalle": st.column_config.TextColumn("Detalle", width="large"),
             },
         )
-
-    if st.button("Cerrar base procesada", use_container_width=True):
-        st.session_state["active_dialog"] = None
-        st.rerun()
 
 
 st.title("Yape Voucher Updater")
