@@ -81,7 +81,7 @@ def show_update_dialog() -> None:
         st.write(f"Errores de procesamiento: `{summary.processing_error_rows}`")
 
     if st.button("Cerrar", use_container_width=True):
-        st.session_state["show_update_dialog"] = False
+        st.session_state["active_dialog"] = None
         st.session_state["execute_update"] = False
         st.rerun()
 
@@ -174,7 +174,7 @@ def show_dataset_dialog() -> None:
         )
 
     if st.button("Cerrar base procesada", use_container_width=True):
-        st.session_state["show_dataset_dialog"] = False
+        st.session_state["active_dialog"] = None
         st.rerun()
 
 
@@ -183,21 +183,21 @@ st.write("Ejecuta la actualización de Google Sheets sin usar PowerShell.")
 require_login()
 
 if st.button("Actualizar Google Sheets", type="primary", use_container_width=True):
+    st.session_state["active_dialog"] = "update"
     st.session_state["update_summary"] = None
     st.session_state["update_error"] = None
     st.session_state["update_traceback"] = None
     st.session_state["execute_update"] = True
-    st.session_state["show_update_dialog"] = True
     st.rerun()
 
-if st.session_state.get("show_update_dialog", False):
+if st.session_state.get("active_dialog") == "update":
     show_update_dialog()
 
 if st.button("Ver base procesada", use_container_width=True):
-    st.session_state["show_dataset_dialog"] = True
+    st.session_state["active_dialog"] = "dataset"
     st.rerun()
 
-if st.session_state.get("show_dataset_dialog", False):
+if st.session_state.get("active_dialog") == "dataset":
     show_dataset_dialog()
 
 if st.button("Cerrar sesión", use_container_width=True):
