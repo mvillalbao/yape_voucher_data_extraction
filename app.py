@@ -147,12 +147,6 @@ def show_dataset_dialog() -> None:
         else:
             df = df.iloc[0:0]
 
-        df = df.sort_values(
-            by=["extracted_date", "extracted_time", "uploader_email"],
-            ascending=[True, True, True],
-            na_position="last",
-        )
-
         df = df.rename(
             columns={
                 "uploader_email": "Correo",
