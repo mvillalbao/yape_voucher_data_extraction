@@ -14,10 +14,22 @@ st.set_page_config(page_title="Yape Voucher Updater", page_icon=":page_facing_up
 st.markdown(
     """
     <style>
+    div[data-testid="stDialog"] {
+        overflow-y: auto;
+        padding-top: 2vh;
+        padding-bottom: 2vh;
+    }
+    div[data-testid="stDialog"] > div {
+        align-items: flex-start;
+    }
     div[data-testid="stDialog"] div[role="dialog"] {
-        max-height: 96vh;
-        height: auto;
-        overflow: visible;
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: var(--background-color);
+    }
+    div[data-testid="stDialog"] div[role="dialog"] > div {
+        background: inherit;
     }
     </style>
     """,
