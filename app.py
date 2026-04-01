@@ -15,7 +15,7 @@ st.markdown(
     """
     <style>
     div[data-testid="stDialog"] div[role="dialog"] {
-        max-height: 96vh;
+        max-height: 200vh;
         height: auto;
         overflow: visible;
     }
