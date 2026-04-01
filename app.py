@@ -102,23 +102,6 @@ def show_update_dialog() -> None:
         st.rerun()
 
 
-def render_dataset_summary(total_rows: int, status_counts: dict[str, int]) -> None:
-    with st.container(border=True):
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total de filas", total_rows)
-        c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
-        c3.metric(
-            "Requieren revision",
-            int(
-                status_counts.get("blank_operation_number", 0)
-                + status_counts.get("duplicate_operation_number", 0)
-                + status_counts.get("invalid_drive_link", 0)
-                + status_counts.get("duplicate_invalid_link", 0)
-                + status_counts.get("processing_error", 0)
-            ),
-        )
-
-
 @st.dialog("Base procesada", width="large")
 def show_dataset_dialog() -> None:
     try:
@@ -131,9 +114,6 @@ def show_dataset_dialog() -> None:
         st.error(f"No se pudo cargar la base procesada: {exc}")
         st.code(traceback.format_exc(), language="text")
         st.stop()
-
-    if "dataset_summary_expanded" not in st.session_state:
-        st.session_state["dataset_summary_expanded"] = False
 
     df = pd.DataFrame(dataset.rows)
     if df.empty:
@@ -155,14 +135,20 @@ def show_dataset_dialog() -> None:
         df["extracted_amount"] = pd.to_numeric(df["extracted_amount"], errors="coerce")
 
         status_counts = df["status"].value_counts(dropna=False).to_dict()
-        summary_expanded = st.session_state["dataset_summary_expanded"]
-        summary_label = "▾ Resumen de la base" if summary_expanded else "▸ Resumen de la base"
-        if st.button(summary_label, use_container_width=True, key="toggle_dataset_summary"):
-            st.session_state["dataset_summary_expanded"] = not summary_expanded
-            st.rerun()
-
-        if st.session_state["dataset_summary_expanded"]:
-            render_dataset_summary(dataset.total_rows, status_counts)
+        with st.expander("Resumen de la base", expanded=False):
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Total de filas", dataset.total_rows)
+            c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
+            c3.metric(
+                "Requieren revision",
+                int(
+                    status_counts.get("blank_operation_number", 0)
+                    + status_counts.get("duplicate_operation_number", 0)
+                    + status_counts.get("invalid_drive_link", 0)
+                    + status_counts.get("duplicate_invalid_link", 0)
+                    + status_counts.get("processing_error", 0)
+                ),
+            )
 
         available_statuses = sorted([status for status in df["status"].dropna().unique().tolist() if status])
         selected_statuses = st.multiselect(
@@ -191,12 +177,11 @@ def show_dataset_dialog() -> None:
             }
         )
 
-        dataframe_height = 180 if st.session_state["dataset_summary_expanded"] else 340
         st.dataframe(
             df,
             use_container_width=True,
             hide_index=True,
-            height=dataframe_height,
+            height=300,
             column_config={
                 "Comprobante": st.column_config.LinkColumn("Comprobante"),
                 "Monto": st.column_config.NumberColumn("Monto", format="%.2f"),
