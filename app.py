@@ -15,7 +15,6 @@ st.markdown(
     """
     <style>
     div[data-testid="stDialog"] div[role="dialog"] {
-        min-height: 92vh;
         max-height: 96vh;
         height: auto;
         overflow: visible;
@@ -179,7 +178,7 @@ def show_dataset_dialog() -> None:
             df,
             use_container_width=True,
             hide_index=True,
-            height=560,
+            height=300,
             column_config={
                 "Comprobante": st.column_config.LinkColumn("Comprobante"),
                 "Monto": st.column_config.NumberColumn("Monto", format="%.2f"),
