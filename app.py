@@ -11,6 +11,17 @@ from main import ConfigError, fetch_processed_dataset, run_update
 
 st.set_page_config(page_title="Yape Voucher Updater", page_icon=":page_facing_up:")
 
+st.markdown(
+    """
+    <style>
+    div[data-testid="stDialog"] div[role="dialog"] {
+        max-height: 90vh;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 def get_app_password() -> str:
     password = st.secrets.get("APP_PASSWORD", "")
@@ -99,8 +110,6 @@ def show_dataset_dialog() -> None:
         st.code(traceback.format_exc(), language="text")
         st.stop()
 
-    st.markdown("### Resumen de la base")
-
     df = pd.DataFrame(dataset.rows)
     if df.empty:
         st.info("La base procesada todavía no tiene registros.")
@@ -121,19 +130,20 @@ def show_dataset_dialog() -> None:
         df["extracted_amount"] = pd.to_numeric(df["extracted_amount"], errors="coerce")
 
         status_counts = df["status"].value_counts(dropna=False).to_dict()
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total de filas", dataset.total_rows)
-        c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
-        c3.metric(
-            "Requieren revisión",
-            int(
-                status_counts.get("blank_operation_number", 0)
-                + status_counts.get("duplicate_operation_number", 0)
-                + status_counts.get("invalid_drive_link", 0)
-                + status_counts.get("duplicate_invalid_link", 0)
-                + status_counts.get("processing_error", 0)
-            ),
-        )
+        with st.expander("Resumen de la base", expanded=False):
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Total de filas", dataset.total_rows)
+            c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
+            c3.metric(
+                "Requieren revisión",
+                int(
+                    status_counts.get("blank_operation_number", 0)
+                    + status_counts.get("duplicate_operation_number", 0)
+                    + status_counts.get("invalid_drive_link", 0)
+                    + status_counts.get("duplicate_invalid_link", 0)
+                    + status_counts.get("processing_error", 0)
+                ),
+            )
 
         available_statuses = sorted([status for status in df["status"].dropna().unique().tolist() if status])
         selected_statuses = st.multiselect(
@@ -166,6 +176,7 @@ def show_dataset_dialog() -> None:
             df,
             use_container_width=True,
             hide_index=True,
+            height=460,
             column_config={
                 "Comprobante": st.column_config.LinkColumn("Comprobante"),
                 "Monto": st.column_config.NumberColumn("Monto", format="%.2f"),
