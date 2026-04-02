@@ -112,6 +112,69 @@ def build_manual_review_nav_href(direction: str) -> str:
     return f"?{urlencode(params, doseq=True)}"
 
 
+def render_mobile_review_nav(*, prev_href: str, next_href: str, prev_disabled: bool, next_disabled: bool, key: str) -> None:
+    html = f"""
+    <style>
+      .manual-review-mobile-nav {{
+        display: flex;
+        gap: 0.75rem;
+        width: 100%;
+        margin: 0.35rem 0 0.1rem;
+        box-sizing: border-box;
+      }}
+      .manual-review-mobile-nav .nav-half {{
+        flex: 1 1 50%;
+      }}
+      .manual-review-mobile-nav .nav-button {{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 3rem;
+        border-radius: 999px;
+        border: 1px solid rgba(250, 250, 250, 0.18);
+        background: rgba(255, 255, 255, 0.02);
+        color: #ffffff;
+        font-size: 1.55rem;
+        line-height: 1;
+        box-sizing: border-box;
+        cursor: pointer;
+        padding: 0;
+      }}
+      .manual-review-mobile-nav .nav-button:disabled {{
+        opacity: 0.35;
+        cursor: default;
+      }}
+    </style>
+    <div class="manual-review-mobile-nav" id="manual-review-mobile-nav-{key}">
+      <div class="nav-half">
+        <button class="nav-button" {"disabled" if prev_disabled else ""} data-href="{prev_href}">‹</button>
+      </div>
+      <div class="nav-half">
+        <button class="nav-button" {"disabled" if next_disabled else ""} data-href="{next_href}">›</button>
+      </div>
+    </div>
+    <script>
+      const root = document.getElementById("manual-review-mobile-nav-{key}");
+      if (root) {{
+        root.querySelectorAll(".nav-button").forEach((button) => {{
+          button.addEventListener("click", (event) => {{
+            const href = button.getAttribute("data-href");
+            if (!href || button.disabled) {{
+              return;
+            }}
+            event.preventDefault();
+            const target = href.startsWith("?") ? href : `?${{href}}`;
+            const parentWindow = window.parent || window;
+            parentWindow.location.href = target;
+          }});
+        }});
+      }}
+    </script>
+    """
+    components.html(html, height=66, scrolling=False)
+
+
 @st.dialog("Actualizacion de Google Sheets", width="large")
 def show_update_dialog() -> None:
     if st.session_state.get("execute_update", False):
@@ -467,48 +530,12 @@ def show_manual_review_dialog() -> None:
                     next_href = build_manual_review_nav_href("next")
                     prev_disabled = current_index == 0
                     next_disabled = current_index >= len(pending_rows) - 1
-                    st.markdown(
-                        f"""
-                        <style>
-                        .manual-review-mobile-nav {{
-                            display: flex;
-                            gap: 0.75rem;
-                            width: 100%;
-                            margin: 0.35rem 0 0.1rem;
-                        }}
-                        .manual-review-mobile-nav .nav-half {{
-                            flex: 1 1 50%;
-                        }}
-                        .manual-review-mobile-nav .nav-button {{
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            width: 100%;
-                            min-height: 3rem;
-                            border-radius: 999px;
-                            border: 1px solid rgba(250, 250, 250, 0.18);
-                            background: rgba(255, 255, 255, 0.02);
-                            color: #ffffff;
-                            font-size: 1.55rem;
-                            line-height: 1;
-                            text-decoration: none;
-                            box-sizing: border-box;
-                        }}
-                        .manual-review-mobile-nav .nav-button-disabled {{
-                            opacity: 0.35;
-                            pointer-events: none;
-                        }}
-                        </style>
-                        <div class="manual-review-mobile-nav">
-                            <div class="nav-half">
-                                {"<span class='nav-button nav-button-disabled'>‹</span>" if prev_disabled else f"<a class='nav-button' href='{prev_href}'>‹</a>"}
-                            </div>
-                            <div class="nav-half">
-                                {"<span class='nav-button nav-button-disabled'>›</span>" if next_disabled else f"<a class='nav-button' href='{next_href}'>›</a>"}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
+                    render_mobile_review_nav(
+                        prev_href=prev_href,
+                        next_href=next_href,
+                        prev_disabled=prev_disabled,
+                        next_disabled=next_disabled,
+                        key=str(sheet_row_number),
                     )
                 else:
                     outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
