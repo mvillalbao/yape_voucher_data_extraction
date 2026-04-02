@@ -5,6 +5,7 @@ import hmac
 import re
 import struct
 import traceback
+from urllib.parse import urlencode
 
 import pandas as pd
 import streamlit as st
@@ -41,16 +42,6 @@ st.markdown(
         margin: 0;
         width: 100%;
         text-align: center;
-    }
-    @media (max-width: 768px) {
-        div[data-testid="stVerticalBlock"]:has(#manual-review-mobile-nav) div[data-testid="stHorizontalBlock"] {
-            flex-wrap: nowrap !important;
-            gap: 0.5rem !important;
-        }
-        div[data-testid="stVerticalBlock"]:has(#manual-review-mobile-nav) div[data-testid="column"] {
-            min-width: 0 !important;
-            flex: 1 1 0 !important;
-        }
     }
     </style>
     """,
@@ -109,6 +100,16 @@ def is_mobile_session() -> bool:
             re.IGNORECASE,
         )
     )
+
+
+def build_manual_review_nav_href(direction: str) -> str:
+    params: dict[str, object] = {}
+    for key, value in st.query_params.items():
+        if key == "manual_review_nav":
+            continue
+        params[key] = value
+    params["manual_review_nav"] = direction
+    return f"?{urlencode(params, doseq=True)}"
 
 
 @st.dialog("Actualizacion de Google Sheets", width="large")
@@ -416,6 +417,20 @@ def show_manual_review_dialog() -> None:
             st.rerun()
         return
 
+    mobile_session = is_mobile_session()
+    nav_action = str(st.query_params.get("manual_review_nav", "")).strip().lower()
+    if mobile_session and nav_action in {"prev", "next"}:
+        base_index = int(st.session_state.get("manual_review_index", 0))
+        if nav_action == "prev":
+            st.session_state["manual_review_index"] = max(base_index - 1, 0)
+        else:
+            st.session_state["manual_review_index"] = min(base_index + 1, len(pending_rows) - 1)
+        try:
+            del st.query_params["manual_review_nav"]
+        except Exception:
+            pass
+        st.rerun()
+
     current_index = int(st.session_state.get("manual_review_index", 0))
     if current_index >= len(pending_rows):
         current_index = max(len(pending_rows) - 1, 0)
@@ -424,7 +439,6 @@ def show_manual_review_dialog() -> None:
     current_row = pending_rows[current_index]
     sheet_row_number = int(current_row["_sheet_row_number"])
     current_status = str(current_row.get("status", "")).strip()
-    mobile_session = is_mobile_session()
 
     meta_left, meta_right = st.columns([2, 1])
     with meta_left:
@@ -449,17 +463,53 @@ def show_manual_review_dialog() -> None:
                             key=str(sheet_row_number),
                         )
 
-                    with st.container():
-                        st.markdown('<div id="manual-review-mobile-nav"></div>', unsafe_allow_html=True)
-                        mobile_prev, mobile_next = st.columns([1, 1], gap="small")
-                        with mobile_prev:
-                            if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
-                                st.session_state["manual_review_index"] = max(current_index - 1, 0)
-                                st.rerun()
-                        with mobile_next:
-                            if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
-                                st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
-                                st.rerun()
+                    prev_href = build_manual_review_nav_href("prev")
+                    next_href = build_manual_review_nav_href("next")
+                    prev_disabled = current_index == 0
+                    next_disabled = current_index >= len(pending_rows) - 1
+                    st.markdown(
+                        f"""
+                        <style>
+                        .manual-review-mobile-nav {{
+                            display: flex;
+                            gap: 0.75rem;
+                            width: 100%;
+                            margin: 0.35rem 0 0.1rem;
+                        }}
+                        .manual-review-mobile-nav .nav-half {{
+                            flex: 1 1 50%;
+                        }}
+                        .manual-review-mobile-nav .nav-button {{
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 100%;
+                            min-height: 3rem;
+                            border-radius: 999px;
+                            border: 1px solid rgba(250, 250, 250, 0.18);
+                            background: rgba(255, 255, 255, 0.02);
+                            color: #ffffff;
+                            font-size: 1.55rem;
+                            line-height: 1;
+                            text-decoration: none;
+                            box-sizing: border-box;
+                        }}
+                        .manual-review-mobile-nav .nav-button-disabled {{
+                            opacity: 0.35;
+                            pointer-events: none;
+                        }}
+                        </style>
+                        <div class="manual-review-mobile-nav">
+                            <div class="nav-half">
+                                {"<span class='nav-button nav-button-disabled'>‹</span>" if prev_disabled else f"<a class='nav-button' href='{prev_href}'>‹</a>"}
+                            </div>
+                            <div class="nav-half">
+                                {"<span class='nav-button nav-button-disabled'>›</span>" if next_disabled else f"<a class='nav-button' href='{next_href}'>›</a>"}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
                 else:
                     outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
                         [1.05, 0.3, 1.2, 0.3, 1.05],
