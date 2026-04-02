@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 import hmac
 import re
 import traceback
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from main import (
     ConfigError,
@@ -258,6 +260,75 @@ def validate_manual_review_inputs(
     return amount, errors
 
 
+def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None:
+    encoded = base64.b64encode(content).decode("utf-8")
+    image_url = f"data:{mime_type};base64,{encoded}"
+    container_id = f"hover-zoom-{key}"
+    html = f"""
+    <div id="{container_id}" class="hover-zoom-shell">
+      <div class="hover-zoom-frame">
+        <img src="{image_url}" alt="Comprobante" class="hover-zoom-image" />
+      </div>
+    </div>
+    <style>
+      #{container_id}.hover-zoom-shell {{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }}
+      #{container_id} .hover-zoom-frame {{
+        width: min(100%, 560px);
+        overflow: hidden;
+        border-radius: 18px;
+        cursor: zoom-in;
+        background: transparent;
+      }}
+      #{container_id} .hover-zoom-image {{
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+        transform-origin: center center;
+        transform: scale(1);
+        transition: transform 120ms ease-out;
+        will-change: transform, transform-origin;
+      }}
+      @media (hover: none) {{
+        #{container_id} .hover-zoom-frame {{
+          cursor: default;
+        }}
+      }}
+    </style>
+    <script>
+      (() => {{
+        const root = document.getElementById("{container_id}");
+        if (!root) return;
+        const frame = root.querySelector(".hover-zoom-frame");
+        const image = root.querySelector(".hover-zoom-image");
+        if (!frame || !image) return;
+
+        const setZoom = (event) => {{
+          const rect = frame.getBoundingClientRect();
+          const x = Math.max(0, Math.min(event.clientX - rect.left, rect.width));
+          const y = Math.max(0, Math.min(event.clientY - rect.top, rect.height));
+          const percentX = rect.width ? (x / rect.width) * 100 : 50;
+          const percentY = rect.height ? (y / rect.height) * 100 : 50;
+          image.style.transformOrigin = `${{percentX}}% ${{percentY}}%`;
+          image.style.transform = "scale(4)";
+        }};
+
+        frame.addEventListener("mousemove", setZoom);
+        frame.addEventListener("mouseenter", setZoom);
+        frame.addEventListener("mouseleave", () => {{
+          image.style.transformOrigin = "center center";
+          image.style.transform = "scale(1)";
+        }});
+      }})();
+    </script>
+    """
+    components.html(html, height=760, scrolling=False)
+
+
 @st.dialog("Revision manual", width="large")
 def show_manual_review_dialog() -> None:
     try:
@@ -313,7 +384,11 @@ def show_manual_review_dialog() -> None:
                             st.session_state["manual_review_index"] = max(current_index - 1, 0)
                             st.rerun()
                 with center:
-                    st.image(content, use_container_width=True)
+                    render_hover_zoom_image(
+                        content=content,
+                        mime_type=mime_type,
+                        key=str(sheet_row_number),
+                    )
                 with right_button_col:
                     right_spacer, right_center, right_spacer_2 = st.columns([1, 1, 1])
                     with right_center:
