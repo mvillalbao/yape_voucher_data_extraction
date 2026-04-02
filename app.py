@@ -26,6 +26,9 @@ st.markdown(
         height: auto;
         overflow: visible;
     }
+    div[data-testid="stButton"] > button[kind="secondary"] {
+        border-radius: 999px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -288,9 +291,21 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                left, center, right = st.columns([1.4, 1.2, 1.4])
+                left, center, right = st.columns([0.8, 2.0, 0.8], vertical_alignment="center")
+                with left:
+                    if st.button("❮", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
+                        st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                        st.rerun()
                 with center:
                     st.image(content, use_container_width=True)
+                with right:
+                    if st.button(
+                        "❯",
+                        key=f"manual_review_next_{sheet_row_number}",
+                        disabled=current_index >= len(pending_rows) - 1,
+                    ):
+                        st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                        st.rerun()
             else:
                 st.info("Este archivo no es una imagen. Usa el link del comprobante para revisarlo manualmente.")
     else:
@@ -342,31 +357,17 @@ def show_manual_review_dialog() -> None:
                 value=str(current_row.get("extracted_phone_or_recipient", "")),
             )
 
-        status_options = [
-            "ok",
-            "blank_operation_number",
-            "duplicate_operation_number",
-            "duplicate_file_content",
-            "invalid_drive_link",
-            "duplicate_invalid_link",
-            "processing_error",
-        ]
         current_status = str(current_row.get("status", "")).strip()
-        if current_status and current_status not in status_options:
-            status_options.append(current_status)
 
-        row3_col1, row3_col2 = st.columns([1, 2])
-        with row3_col1:
-            status = st.selectbox(
-                "Estado",
-                options=status_options,
-                index=status_options.index(current_status) if current_status in status_options else 0,
-            )
-        with row3_col2:
-            error_message = st.text_area(
-                "Detalle",
+        info_col1, info_col2 = st.columns([1, 2])
+        with info_col1:
+            st.text_input("Estado original", value=current_status or "sin estado", disabled=True)
+        with info_col2:
+            st.text_area(
+                "Detalle original",
                 value=str(current_row.get("error_message", "")),
                 height=68,
+                disabled=True,
             )
 
         left, center, right = st.columns([3, 1, 3])
@@ -393,8 +394,8 @@ def show_manual_review_dialog() -> None:
                     date=date_value,
                     time_value=time_value,
                     phone_or_recipient=phone_or_recipient,
-                    status=status,
-                    error_message=error_message,
+                    status=current_status,
+                    error_message=str(current_row.get("error_message", "")),
                 )
             except Exception as exc:
                 st.error(f"No se pudo guardar la revision manual: {exc}")
