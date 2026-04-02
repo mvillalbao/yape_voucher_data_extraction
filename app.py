@@ -42,6 +42,16 @@ st.markdown(
         width: 100%;
         text-align: center;
     }
+    @media (min-width: 769px) {
+        #manual-review-bottom-nav + div {
+            display: none;
+        }
+    }
+    @media (max-width: 768px) {
+        #manual-review-side-nav + div [data-testid="stButton"] {
+            display: none;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -405,6 +415,7 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
+                st.markdown('<div id="manual-review-side-nav"></div>', unsafe_allow_html=True)
                 outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
                     [1.05, 0.3, 1.2, 0.3, 1.05],
                     vertical_alignment="center",
@@ -425,6 +436,19 @@ def show_manual_review_dialog() -> None:
                     right_spacer, right_center, right_spacer_2 = st.columns([1, 1, 1])
                     with right_center:
                         if st.button("›", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
+                            st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                            st.rerun()
+
+                st.markdown('<div id="manual-review-bottom-nav"></div>', unsafe_allow_html=True)
+                bottom_left, bottom_center, bottom_right = st.columns([1, 2, 1])
+                with bottom_center:
+                    mobile_prev, mobile_next = st.columns(2)
+                    with mobile_prev:
+                        if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
+                            st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                            st.rerun()
+                    with mobile_next:
+                        if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
                             st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
                             st.rerun()
             else:
