@@ -439,17 +439,15 @@ def show_manual_review_dialog() -> None:
                             key=str(sheet_row_number),
                         )
 
-                    nav_left, nav_center, nav_right = st.columns([0.35, 2.3, 0.35])
-                    with nav_center:
-                        mobile_prev, mobile_next = st.columns([1, 1], gap="small")
-                        with mobile_prev:
-                            if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
-                                st.session_state["manual_review_index"] = max(current_index - 1, 0)
-                                st.rerun()
-                        with mobile_next:
-                            if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
-                                st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
-                                st.rerun()
+                    mobile_prev, mobile_next = st.columns([1, 1], gap="small")
+                    with mobile_prev:
+                        if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
+                            st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                            st.rerun()
+                    with mobile_next:
+                        if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
+                            st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                            st.rerun()
                 else:
                     outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
                         [1.05, 0.3, 1.2, 0.3, 1.05],
