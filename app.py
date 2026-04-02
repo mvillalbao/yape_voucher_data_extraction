@@ -439,9 +439,9 @@ def show_manual_review_dialog() -> None:
                             key=str(sheet_row_number),
                         )
 
-                    nav_left, nav_center, nav_right = st.columns([1, 1.4, 1])
+                    nav_left, nav_center, nav_right = st.columns([0.35, 2.3, 0.35])
                     with nav_center:
-                        mobile_prev, mobile_next = st.columns(2)
+                        mobile_prev, mobile_next = st.columns([1, 1], gap="small")
                         with mobile_prev:
                             if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
                                 st.session_state["manual_review_index"] = max(current_index - 1, 0)
