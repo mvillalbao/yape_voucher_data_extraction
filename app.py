@@ -28,6 +28,15 @@ st.markdown(
     }
     div[data-testid="stButton"] > button[kind="secondary"] {
         border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        text-align: center;
+    }
+    div[data-testid="stButton"] > button[kind="secondary"] p {
+        margin: 0;
+        width: 100%;
         text-align: center;
     }
     </style>
