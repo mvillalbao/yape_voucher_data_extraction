@@ -291,13 +291,13 @@ def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None
     image_url = f"data:{mime_type};base64,{encoded}"
     container_id = f"hover-zoom-{key}"
     dimensions = get_image_dimensions(content, mime_type)
-    frame_width = 420
+    frame_width = 340
     if dimensions:
         original_width, original_height = dimensions
         rendered_height = int(frame_width * (original_height / max(original_width, 1)))
     else:
-        rendered_height = 560
-    component_height = max(280, min(rendered_height + 12, 760))
+        rendered_height = 500
+    component_height = max(240, min(rendered_height + 8, 680))
     html = f"""
     <div id="{container_id}" class="hover-zoom-shell">
       <div class="hover-zoom-frame">
@@ -311,7 +311,7 @@ def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None
         justify-content: center;
       }}
       #{container_id} .hover-zoom-frame {{
-        width: min(100%, 420px);
+        width: min(100%, 340px);
         overflow: hidden;
         border-radius: 18px;
         cursor: zoom-in;
