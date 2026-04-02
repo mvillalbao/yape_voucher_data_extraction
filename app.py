@@ -42,16 +42,6 @@ st.markdown(
         width: 100%;
         text-align: center;
     }
-    @media (min-width: 769px) {
-        div[data-testid="stVerticalBlock"]:has(#manual-review-bottom-nav) {
-            display: none;
-        }
-    }
-    @media (max-width: 768px) {
-        div[data-testid="stVerticalBlock"]:has(#manual-review-side-nav) {
-            display: none;
-        }
-    }
     </style>
     """,
     unsafe_allow_html=True,
