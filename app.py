@@ -292,15 +292,18 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                left, center, right = st.columns([1.4, 1.2, 1.4], vertical_alignment="center")
-                with left:
-                    if st.button("<", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
+                outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
+                    [1.05, 0.3, 1.2, 0.3, 1.05],
+                    vertical_alignment="center",
+                )
+                with left_button_col:
+                    if st.button("❮", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
                         st.session_state["manual_review_index"] = max(current_index - 1, 0)
                         st.rerun()
                 with center:
                     st.image(content, use_container_width=True)
-                with right:
-                    if st.button(">", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
+                with right_button_col:
+                    if st.button("❯", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
                         st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
                         st.rerun()
             else:
