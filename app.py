@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import base64
 import hmac
-import struct
 import re
+import struct
 import traceback
 
 import pandas as pd
@@ -41,6 +41,27 @@ st.markdown(
         margin: 0;
         width: 100%;
         text-align: center;
+    }
+    @media (max-width: 768px) {
+        #manual-review-nav-anchor + div [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap;
+            row-gap: 0.5rem;
+        }
+        #manual-review-nav-anchor + div [data-testid="column"]:nth-child(1) {
+            order: 2;
+            flex: 1 1 50% !important;
+            min-width: 0 !important;
+        }
+        #manual-review-nav-anchor + div [data-testid="column"]:nth-child(2) {
+            order: 1;
+            flex: 1 1 100% !important;
+            min-width: 0 !important;
+        }
+        #manual-review-nav-anchor + div [data-testid="column"]:nth-child(3) {
+            order: 3;
+            flex: 1 1 50% !important;
+            min-width: 0 !important;
+        }
     }
     </style>
     """,
@@ -340,7 +361,6 @@ def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None
         const frame = root.querySelector(".hover-zoom-frame");
         const image = root.querySelector(".hover-zoom-image");
         if (!frame || !image) return;
-
         const setZoom = (event) => {{
           const rect = frame.getBoundingClientRect();
           const x = Math.max(0, Math.min(event.clientX - rect.left, rect.width));
@@ -350,7 +370,6 @@ def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None
           image.style.transformOrigin = `${{percentX}}% ${{percentY}}%`;
           image.style.transform = "scale(4)";
         }};
-
         frame.addEventListener("mousemove", setZoom);
         frame.addEventListener("mouseenter", setZoom);
         frame.addEventListener("mouseleave", () => {{
@@ -407,8 +426,9 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
-                    [1.05, 0.3, 1.2, 0.3, 1.05],
+                st.markdown('<div id="manual-review-nav-anchor"></div>', unsafe_allow_html=True)
+                left_button_col, center, right_button_col = st.columns(
+                    [0.3, 1.2, 0.3],
                     vertical_alignment="center",
                 )
                 with left_button_col:
