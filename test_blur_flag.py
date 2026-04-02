@@ -14,8 +14,8 @@ BLUR_INNER_CROP_LEFT_RATIO = 0.10
 BLUR_INNER_CROP_RIGHT_RATIO = 0.10
 BLUR_INNER_CROP_TOP_RATIO = 0.08
 BLUR_INNER_CROP_BOTTOM_RATIO = 0.08
-BLUR_GRID_ROWS = 4
-BLUR_GRID_COLS = 3
+BLUR_GRID_ROWS = 6
+BLUR_GRID_COLS = 8
 BLUR_WINDOW_WIDTH_RATIO = 0.55
 BLUR_WINDOW_HEIGHT_RATIO = 0.55
 
@@ -74,18 +74,33 @@ def build_cropped_output_path(path: Path) -> Path:
     return path.with_name(f"{path.stem}_cropped{path.suffix}")
 
 
+def build_windows_output_dir(path: Path) -> Path:
+    return path.parent / f"{path.stem}_windows"
+
+
 def main() -> None:
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(IMAGE_PATH)
     score, is_flagged, cropped = analyze_image(path)
     cropped_output_path = build_cropped_output_path(path)
+    windows_output_dir = build_windows_output_dir(path)
 
     saved = cv2.imwrite(str(cropped_output_path), cropped)
     if not saved:
         raise RuntimeError(f"No se pudo guardar el recorte en: {cropped_output_path}")
 
+    windows_output_dir.mkdir(parents=True, exist_ok=True)
+    window_crops = generate_overlapping_grid_crops(cropped)
+    for index, window_crop in enumerate(window_crops, start=1):
+        window_path = windows_output_dir / f"{path.stem}_window_{index:02d}{path.suffix}"
+        saved_window = cv2.imwrite(str(window_path), window_crop)
+        if not saved_window:
+            raise RuntimeError(f"No se pudo guardar la ventana en: {window_path}")
+
     print(f"image_path: {path}")
     print(f"crop_shape: {cropped.shape[1]}x{cropped.shape[0]}")
     print(f"cropped_image_path: {cropped_output_path}")
+    print(f"windows_output_dir: {windows_output_dir}")
+    print(f"windows_saved: {len(window_crops)}")
     print(f"blur_threshold: {BLUR_THRESHOLD:.2f}")
     print(f"variance_of_laplacian: {score:.2f}")
     print(f"imagen_borrosa_flag: {'yes' if is_flagged else 'no'}")
