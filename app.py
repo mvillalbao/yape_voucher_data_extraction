@@ -42,6 +42,16 @@ st.markdown(
         width: 100%;
         text-align: center;
     }
+    @media (max-width: 768px) {
+        div[data-testid="stVerticalBlock"]:has(#manual-review-mobile-nav) div[data-testid="stHorizontalBlock"] {
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+        }
+        div[data-testid="stVerticalBlock"]:has(#manual-review-mobile-nav) div[data-testid="column"] {
+            min-width: 0 !important;
+            flex: 1 1 0 !important;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -439,15 +449,17 @@ def show_manual_review_dialog() -> None:
                             key=str(sheet_row_number),
                         )
 
-                    mobile_prev, mobile_next = st.columns([1, 1], gap="small")
-                    with mobile_prev:
-                        if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
-                            st.session_state["manual_review_index"] = max(current_index - 1, 0)
-                            st.rerun()
-                    with mobile_next:
-                        if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
-                            st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
-                            st.rerun()
+                    with st.container():
+                        st.markdown('<div id="manual-review-mobile-nav"></div>', unsafe_allow_html=True)
+                        mobile_prev, mobile_next = st.columns([1, 1], gap="small")
+                        with mobile_prev:
+                            if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
+                                st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                                st.rerun()
+                        with mobile_next:
+                            if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
+                                st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                                st.rerun()
                 else:
                     outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
                         [1.05, 0.3, 1.2, 0.3, 1.05],
