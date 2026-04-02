@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 import hmac
 import re
 import traceback
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from main import (
     ConfigError,
@@ -258,6 +260,89 @@ def validate_manual_review_inputs(
     return amount, errors
 
 
+def render_zoomable_review_image(*, content: bytes, mime_type: str, key: str) -> None:
+    encoded = base64.b64encode(content).decode("utf-8")
+    image_url = f"data:{mime_type};base64,{encoded}"
+    container_id = f"review-zoom-{key}"
+    html = f"""
+    <div id="{container_id}" class="zoom-shell">
+      <div class="zoom-stage">
+        <img src="{image_url}" alt="Comprobante" class="zoom-image" />
+        <div class="zoom-lens"></div>
+      </div>
+    </div>
+    <style>
+      #{container_id}.zoom-shell {{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }}
+      #{container_id} .zoom-stage {{
+        position: relative;
+        width: min(100%, 560px);
+        cursor: crosshair;
+        overflow: hidden;
+        border-radius: 18px;
+      }}
+      #{container_id} .zoom-image {{
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+      }}
+      #{container_id} .zoom-lens {{
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.8);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, -50%);
+        background-image: url('{image_url}');
+        background-repeat: no-repeat;
+        background-size: 240%;
+        background-color: rgba(15,17,22,0.95);
+        transition: opacity 120ms ease;
+      }}
+      @media (max-width: 768px) {{
+        #{container_id} .zoom-lens {{
+          display: none;
+        }}
+      }}
+    </style>
+    <script>
+      const shell = document.getElementById("{container_id}");
+      if (shell) {{
+        const stage = shell.querySelector(".zoom-stage");
+        const image = shell.querySelector(".zoom-image");
+        const lens = shell.querySelector(".zoom-lens");
+        const updateLens = (event) => {{
+          const rect = image.getBoundingClientRect();
+          const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+          const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+          const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+          const y = Math.max(0, Math.min(clientY - rect.top, rect.height));
+          lens.style.left = `${{x}}px`;
+          lens.style.top = `${{y}}px`;
+          const bgX = rect.width > 0 ? (x / rect.width) * 100 : 50;
+          const bgY = rect.height > 0 ? (y / rect.height) * 100 : 50;
+          lens.style.backgroundPosition = `${{bgX}}% ${{bgY}}%`;
+          lens.style.opacity = "1";
+        }};
+        stage.addEventListener("mousemove", updateLens);
+        stage.addEventListener("mouseenter", () => {{ lens.style.opacity = "1"; }});
+        stage.addEventListener("mouseleave", () => {{ lens.style.opacity = "0"; }});
+        stage.addEventListener("touchstart", updateLens, {{ passive: true }});
+        stage.addEventListener("touchmove", updateLens, {{ passive: true }});
+        stage.addEventListener("touchend", () => {{ lens.style.opacity = "0"; }});
+      }}
+    </script>
+    """
+    components.html(html, height=760, scrolling=False)
+
+
 @st.dialog("Revision manual", width="large")
 def show_manual_review_dialog() -> None:
     try:
@@ -313,7 +398,11 @@ def show_manual_review_dialog() -> None:
                             st.session_state["manual_review_index"] = max(current_index - 1, 0)
                             st.rerun()
                 with center:
-                    st.image(content, use_container_width=True)
+                    render_zoomable_review_image(
+                        content=content,
+                        mime_type=mime_type,
+                        key=str(sheet_row_number),
+                    )
                 with right_button_col:
                     right_spacer, right_center, right_spacer_2 = st.columns([1, 1, 1])
                     with right_center:
