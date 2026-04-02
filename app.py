@@ -293,23 +293,19 @@ def show_manual_review_dialog() -> None:
         else:
             if mime_type.startswith("image/"):
                 outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
-                    [0.18, 0.24, 1.2, 0.24, 0.18],
+                    [1.05, 0.3, 1.2, 0.3, 1.05],
                     vertical_alignment="center",
                 )
                 with left_button_col:
-                    left_spacer, left_arrow = st.columns([1, 1])
-                    with left_arrow:
-                        if st.button("❮", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
-                            st.session_state["manual_review_index"] = max(current_index - 1, 0)
-                            st.rerun()
+                    if st.button("❮", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
+                        st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                        st.rerun()
                 with center:
                     st.image(content, use_container_width=True)
                 with right_button_col:
-                    right_arrow, right_spacer = st.columns([1, 1])
-                    with right_arrow:
-                        if st.button("❯", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
-                            st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
-                            st.rerun()
+                    if st.button("❯", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
+                        st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                        st.rerun()
             else:
                 st.info("Este archivo no es una imagen. Usa el link del comprobante para revisarlo manualmente.")
     else:
