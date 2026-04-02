@@ -274,8 +274,11 @@ def show_manual_review_dialog() -> None:
     current_row = pending_rows[current_index]
     sheet_row_number = int(current_row["_sheet_row_number"])
 
-    st.caption(f"Observacion {current_index + 1} de {len(pending_rows)} pendientes")
-    st.write(f"**Estado actual:** `{current_row.get('status', '') or 'sin estado'}`")
+    meta_left, meta_right = st.columns([2, 1])
+    with meta_left:
+        st.caption(f"Observacion {current_index + 1} de {len(pending_rows)} pendientes")
+    with meta_right:
+        st.caption(f"Estado actual: `{current_row.get('status', '') or 'sin estado'}`")
 
     file_id = str(current_row.get("voucher_drive_file_id", "")).strip()
     if file_id:
@@ -285,45 +288,55 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                st.image(content, use_container_width=True)
+                left, center, right = st.columns([1.4, 1.2, 1.4])
+                with center:
+                    st.image(content, use_container_width=True)
             else:
                 st.info("Este archivo no es una imagen. Usa el link del comprobante para revisarlo manualmente.")
     else:
         st.info("Esta observacion no tiene un archivo de imagen disponible.")
 
     if current_row.get("voucher_drive_link"):
-        st.link_button("Abrir comprobante", str(current_row["voucher_drive_link"]), use_container_width=True)
+        left, center, right = st.columns([1.4, 1.2, 1.4])
+        with center:
+            st.link_button("Abrir comprobante", str(current_row["voucher_drive_link"]), use_container_width=True)
 
     with st.form(key=f"manual_review_form_{sheet_row_number}"):
-        st.markdown("### Datos a revisar")
-        operation_number = st.text_input(
-            "Numero de operacion",
-            value=str(current_row.get("extracted_operation_number", "")),
-        )
-        amount_text = st.text_input(
-            "Monto",
-            value=str(current_row.get("extracted_amount", "")),
-            help="Dejalo vacio si no corresponde o no aplica.",
-        )
+        st.markdown("### Revision")
 
-        c1, c2 = st.columns(2)
-        with c1:
+        row1_col1, row1_col2, row1_col3 = st.columns(3)
+        with row1_col1:
+            operation_number = st.text_input(
+                "Numero de operacion",
+                value=str(current_row.get("extracted_operation_number", "")),
+            )
+        with row1_col2:
+            amount_text = st.text_input(
+                "Monto",
+                value=str(current_row.get("extracted_amount", "")),
+                help="Dejalo vacio si no corresponde o no aplica.",
+            )
+        with row1_col3:
             currency = st.text_input(
                 "Moneda",
                 value=str(current_row.get("extracted_currency", "")),
                 max_chars=3,
             )
+
+        row2_col1, row2_col2, row2_col3 = st.columns(3)
+        with row2_col1:
             date_value = st.text_input(
                 "Fecha",
                 value=str(current_row.get("extracted_date", "")),
                 help="Formato YYYY-MM-DD",
             )
-        with c2:
+        with row2_col2:
             time_value = st.text_input(
                 "Hora",
                 value=str(current_row.get("extracted_time", "")),
                 help="Formato HH:MM",
             )
+        with row2_col3:
             phone_or_recipient = st.text_input(
                 "Telefono o destinatario",
                 value=str(current_row.get("extracted_phone_or_recipient", "")),
@@ -342,20 +355,23 @@ def show_manual_review_dialog() -> None:
         if current_status and current_status not in status_options:
             status_options.append(current_status)
 
-        status = st.selectbox(
-            "Estado",
-            options=status_options,
-            index=status_options.index(current_status) if current_status in status_options else 0,
-        )
-        error_message = st.text_area(
-            "Detalle",
-            value=str(current_row.get("error_message", "")),
-            height=100,
-        )
+        row3_col1, row3_col2 = st.columns([1, 2])
+        with row3_col1:
+            status = st.selectbox(
+                "Estado",
+                options=status_options,
+                index=status_options.index(current_status) if current_status in status_options else 0,
+            )
+        with row3_col2:
+            error_message = st.text_area(
+                "Detalle",
+                value=str(current_row.get("error_message", "")),
+                height=68,
+            )
 
         left, center, right = st.columns([3, 1, 3])
         with center:
-            submitted = st.form_submit_button("✓", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("OK", type="primary", use_container_width=True)
 
     if submitted:
         amount, errors = validate_manual_review_inputs(
