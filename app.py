@@ -28,6 +28,7 @@ st.markdown(
     }
     div[data-testid="stButton"] > button[kind="secondary"] {
         border-radius: 999px;
+        text-align: center;
     }
     </style>
     """,
