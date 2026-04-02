@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import hmac
+import re
 import traceback
 
 import pandas as pd
 import streamlit as st
 
-from main import ConfigError, fetch_processed_dataset, run_update
+from main import (
+    ConfigError,
+    fetch_drive_preview,
+    fetch_processed_dataset,
+    run_update,
+    update_manual_review,
+)
 
 
 st.set_page_config(page_title="Yape Voucher Updater", page_icon=":page_facing_up:")
@@ -191,6 +198,204 @@ def show_dataset_dialog() -> None:
         st.rerun()
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def get_review_preview(file_id: str) -> tuple[str, bytes]:
+    preview = fetch_drive_preview(file_id)
+    return preview.mime_type, preview.content
+
+
+def is_manually_reviewed(value: str) -> bool:
+    return value.strip().lower() in {"yes", "true", "1", "si", "sí"}
+
+
+def parse_manual_amount(raw_value: str) -> float | None:
+    cleaned = raw_value.strip()
+    if not cleaned:
+        return None
+    return float(cleaned)
+
+
+def validate_manual_review_inputs(
+    *,
+    amount_text: str,
+    currency: str,
+    date_value: str,
+    time_value: str,
+) -> tuple[float | None, list[str]]:
+    errors: list[str] = []
+
+    try:
+        amount = parse_manual_amount(amount_text)
+    except ValueError:
+        amount = None
+        errors.append("El monto debe ser un numero valido o quedar vacio.")
+
+    currency_value = currency.strip().upper()
+    if currency_value and not re.fullmatch(r"[A-Z]{3}", currency_value):
+        errors.append("La moneda debe estar en formato de 3 letras mayusculas, por ejemplo PEN o USD.")
+
+    date_clean = date_value.strip()
+    if date_clean and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_clean):
+        errors.append("La fecha debe estar en formato YYYY-MM-DD.")
+
+    time_clean = time_value.strip()
+    if time_clean and not re.fullmatch(r"\d{2}:\d{2}", time_clean):
+        errors.append("La hora debe estar en formato HH:MM.")
+
+    return amount, errors
+
+
+@st.dialog("Revision manual", width="large")
+def show_manual_review_dialog() -> None:
+    try:
+        with st.spinner("Cargando observaciones pendientes de revision manual..."):
+            dataset = fetch_processed_dataset()
+    except ConfigError as exc:
+        st.error(f"Error de configuracion: {exc}")
+        st.stop()
+    except Exception as exc:
+        st.error(f"No se pudo cargar la base procesada: {exc}")
+        st.code(traceback.format_exc(), language="text")
+        st.stop()
+
+    pending_rows = [row for row in dataset.rows if not is_manually_reviewed(str(row.get("manually_reviewed", "")))]
+    if not pending_rows:
+        st.success("No hay observaciones pendientes de revision manual.")
+        if st.button("Cerrar", use_container_width=True, key="close_manual_review_dialog_empty"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+        return
+
+    current_index = int(st.session_state.get("manual_review_index", 0))
+    if current_index >= len(pending_rows):
+        current_index = max(len(pending_rows) - 1, 0)
+        st.session_state["manual_review_index"] = current_index
+
+    current_row = pending_rows[current_index]
+    sheet_row_number = int(current_row["_sheet_row_number"])
+
+    st.caption(f"Observacion {current_index + 1} de {len(pending_rows)} pendientes")
+    st.write(f"**Estado actual:** `{current_row.get('status', '') or 'sin estado'}`")
+
+    file_id = str(current_row.get("voucher_drive_file_id", "")).strip()
+    if file_id:
+        try:
+            mime_type, content = get_review_preview(file_id)
+        except Exception as exc:
+            st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
+        else:
+            if mime_type.startswith("image/"):
+                st.image(content, use_container_width=True)
+            else:
+                st.info("Este archivo no es una imagen. Usa el link del comprobante para revisarlo manualmente.")
+    else:
+        st.info("Esta observacion no tiene un archivo de imagen disponible.")
+
+    if current_row.get("voucher_drive_link"):
+        st.link_button("Abrir comprobante", str(current_row["voucher_drive_link"]), use_container_width=True)
+
+    with st.form(key=f"manual_review_form_{sheet_row_number}"):
+        st.markdown("### Datos a revisar")
+        operation_number = st.text_input(
+            "Numero de operacion",
+            value=str(current_row.get("extracted_operation_number", "")),
+        )
+        amount_text = st.text_input(
+            "Monto",
+            value=str(current_row.get("extracted_amount", "")),
+            help="Dejalo vacio si no corresponde o no aplica.",
+        )
+
+        c1, c2 = st.columns(2)
+        with c1:
+            currency = st.text_input(
+                "Moneda",
+                value=str(current_row.get("extracted_currency", "")),
+                max_chars=3,
+            )
+            date_value = st.text_input(
+                "Fecha",
+                value=str(current_row.get("extracted_date", "")),
+                help="Formato YYYY-MM-DD",
+            )
+        with c2:
+            time_value = st.text_input(
+                "Hora",
+                value=str(current_row.get("extracted_time", "")),
+                help="Formato HH:MM",
+            )
+            phone_or_recipient = st.text_input(
+                "Telefono o destinatario",
+                value=str(current_row.get("extracted_phone_or_recipient", "")),
+            )
+
+        status_options = [
+            "ok",
+            "blank_operation_number",
+            "duplicate_operation_number",
+            "duplicate_file_content",
+            "invalid_drive_link",
+            "duplicate_invalid_link",
+            "processing_error",
+        ]
+        current_status = str(current_row.get("status", "")).strip()
+        if current_status and current_status not in status_options:
+            status_options.append(current_status)
+
+        status = st.selectbox(
+            "Estado",
+            options=status_options,
+            index=status_options.index(current_status) if current_status in status_options else 0,
+        )
+        error_message = st.text_area(
+            "Detalle",
+            value=str(current_row.get("error_message", "")),
+            height=100,
+        )
+
+        left, center, right = st.columns([3, 1, 3])
+        with center:
+            submitted = st.form_submit_button("✓", type="primary", use_container_width=True)
+
+    if submitted:
+        amount, errors = validate_manual_review_inputs(
+            amount_text=amount_text,
+            currency=currency,
+            date_value=date_value,
+            time_value=time_value,
+        )
+        if errors:
+            for error in errors:
+                st.error(error)
+        else:
+            try:
+                update_manual_review(
+                    sheet_row_number=sheet_row_number,
+                    operation_number=operation_number,
+                    amount=amount,
+                    currency=currency,
+                    date=date_value,
+                    time_value=time_value,
+                    phone_or_recipient=phone_or_recipient,
+                    status=status,
+                    error_message=error_message,
+                )
+            except Exception as exc:
+                st.error(f"No se pudo guardar la revision manual: {exc}")
+                st.code(traceback.format_exc(), language="text")
+            else:
+                st.session_state["manual_review_message"] = "Observacion revisada y guardada."
+                st.rerun()
+
+    if st.session_state.get("manual_review_message"):
+        st.success(st.session_state["manual_review_message"])
+        st.session_state["manual_review_message"] = None
+
+    if st.button("Cerrar", use_container_width=True, key="close_manual_review_dialog"):
+        st.session_state["active_dialog"] = None
+        st.rerun()
+
+
 st.title("Yape Voucher Updater")
 st.write("Ejecuta la actualizacion de Google Sheets sin usar PowerShell.")
 require_login()
@@ -212,6 +417,14 @@ if st.button("Ver base procesada", use_container_width=True):
 
 if st.session_state.get("active_dialog") == "dataset":
     show_dataset_dialog()
+
+if st.button("Revision manual", use_container_width=True):
+    st.session_state["active_dialog"] = "manual_review"
+    st.session_state["manual_review_index"] = 0
+    st.rerun()
+
+if st.session_state.get("active_dialog") == "manual_review":
+    show_manual_review_dialog()
 
 if st.button("Cerrar sesion", use_container_width=True):
     st.session_state["authenticated"] = False

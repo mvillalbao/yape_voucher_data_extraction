@@ -60,6 +60,7 @@ PROCESSED_HEADERS = [
     "processed_at_utc",
     "status",
     "error_message",
+    "manually_reviewed",
 ]
 
 DRIVE_ID_PATTERNS = [
@@ -167,6 +168,12 @@ class UpdateSummary:
 class ProcessedDatasetView:
     total_rows: int
     rows: list[dict[str, Any]]
+
+
+@dataclass(frozen=True)
+class DrivePreview:
+    mime_type: str
+    content: bytes
 
 
 class VoucherExtraction(BaseModel):
@@ -406,9 +413,17 @@ def ensure_processed_sheet(
 
     current_headers = worksheet.row_values(1)
     if current_headers != PROCESSED_HEADERS:
-        worksheet.update(values=[PROCESSED_HEADERS], range_name="A1:U1")
+        worksheet.update(values=[PROCESSED_HEADERS], range_name=f"A1:{column_number_to_letter(len(PROCESSED_HEADERS))}1")
 
     return worksheet
+
+
+def column_number_to_letter(column_number: int) -> str:
+    result = ""
+    while column_number > 0:
+        column_number, remainder = divmod(column_number - 1, 26)
+        result = chr(65 + remainder) + result
+    return result
 
 def normalize_operation_number(value: str) -> str:
     return re.sub(r"[^a-z0-9]", "", value.strip().lower())
@@ -938,17 +953,75 @@ def count_rows_by_status(rows: list[list[str]]) -> dict[str, int]:
     return counts
 
 
-def fetch_processed_dataset() -> ProcessedDatasetView:
-    configure_logging()
-    config = load_config()
-
+def get_processed_worksheet(config: AppConfig) -> gspread.Worksheet:
     credentials = build_google_credentials(
         service_account_file=config.service_account_file,
         service_account_json=config.service_account_json,
     )
     sheets_client = get_sheets_client(credentials)
     spreadsheet = sheets_client.open_by_key(config.spreadsheet_id)
-    processed_ws = ensure_processed_sheet(spreadsheet, config.processed_sheet_name)
+    return ensure_processed_sheet(spreadsheet, config.processed_sheet_name)
+
+
+def get_drive_client(config: AppConfig) -> Any:
+    credentials = build_google_credentials(
+        service_account_file=config.service_account_file,
+        service_account_json=config.service_account_json,
+    )
+    return build("drive", "v3", credentials=credentials)
+
+
+def fetch_drive_preview(file_id: str) -> DrivePreview:
+    configure_logging()
+    config = load_config()
+    drive_client = get_drive_client(config)
+    document = fetch_drive_document(drive_client, file_id)
+    return DrivePreview(mime_type=document.mime_type, content=document.content)
+
+
+def update_manual_review(
+    *,
+    sheet_row_number: int,
+    operation_number: str,
+    amount: float | None,
+    currency: str,
+    date: str,
+    time_value: str,
+    phone_or_recipient: str,
+    status: str,
+    error_message: str,
+) -> None:
+    configure_logging()
+    config = load_config()
+    processed_ws = get_processed_worksheet(config)
+
+    current_headers = processed_ws.row_values(1)
+    row_values = processed_ws.row_values(sheet_row_number)
+    padded_row = row_values + [""] * (len(current_headers) - len(row_values))
+    row_map = {current_headers[index]: padded_row[index] for index in range(len(current_headers))}
+
+    row_map["extracted_operation_number"] = operation_number.strip()
+    row_map["extracted_amount"] = "" if amount is None else amount
+    row_map["extracted_currency"] = currency.strip().upper()
+    row_map["extracted_date"] = date.strip()
+    row_map["extracted_time"] = time_value.strip()
+    row_map["extracted_phone_or_recipient"] = phone_or_recipient.strip()
+    row_map["status"] = status.strip()
+    row_map["error_message"] = error_message.strip()
+    row_map["manually_reviewed"] = "yes"
+
+    updated_row = [row_map.get(header, "") for header in PROCESSED_HEADERS]
+    processed_ws.update(
+        values=[updated_row],
+        range_name=f"A{sheet_row_number}:{column_number_to_letter(len(PROCESSED_HEADERS))}{sheet_row_number}",
+    )
+
+
+def fetch_processed_dataset() -> ProcessedDatasetView:
+    configure_logging()
+    config = load_config()
+
+    processed_ws = get_processed_worksheet(config)
 
     values = processed_ws.get_all_values()
     if len(values) <= 1:
@@ -956,9 +1029,11 @@ def fetch_processed_dataset() -> ProcessedDatasetView:
 
     headers = values[0]
     rows: list[dict[str, Any]] = []
-    for row in values[1:]:
+    for sheet_row_number, row in enumerate(values[1:], start=2):
         padded_row = row + [""] * (len(headers) - len(row))
-        rows.append({headers[index]: padded_row[index] for index in range(len(headers))})
+        row_map = {headers[index]: padded_row[index] for index in range(len(headers))}
+        row_map["_sheet_row_number"] = sheet_row_number
+        rows.append(row_map)
 
     return ProcessedDatasetView(total_rows=len(rows), rows=rows)
 
