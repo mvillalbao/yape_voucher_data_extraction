@@ -19,6 +19,8 @@ from logging.handlers import RotatingFileHandler
 from typing import Any
 
 import gspread
+import cv2
+import numpy as np
 from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -37,6 +39,9 @@ DEFAULT_OPENAI_MODEL = "gpt-5-mini"
 DEFAULT_MAX_WORKERS = 50
 DEFAULT_OPENAI_TIMEOUT_SECONDS = 90
 DEFAULT_OPENAI_MAX_ATTEMPTS = 8
+DEFAULT_BLUR_THRESHOLD = 100.0
+CENTER_CROP_WIDTH_RATIO = 0.60
+CENTER_CROP_HEIGHT_RATIO = 0.60
 
 PROCESSED_HEADERS = [
     "submission_id",
@@ -57,6 +62,8 @@ PROCESSED_HEADERS = [
     "openai_output_tokens",
     "openai_total_tokens",
     "openai_retry_count",
+    "image_blur_score",
+    "image_is_blurry",
     "processed_at_utc",
     "status",
     "error_message",
@@ -399,6 +406,48 @@ def make_submission_id(file_bytes: bytes) -> str:
 def make_link_submission_id(drive_link: str) -> str:
     normalized_link = drive_link.strip()
     return hashlib.sha256(f"link:{normalized_link}".encode("utf-8")).hexdigest()
+
+
+def decode_image_bytes(image_bytes: bytes) -> np.ndarray | None:
+    buffer = np.frombuffer(image_bytes, dtype=np.uint8)
+    if buffer.size == 0:
+        return None
+    return cv2.imdecode(buffer, cv2.IMREAD_COLOR)
+
+
+def center_crop_image(
+    image: np.ndarray,
+    *,
+    width_ratio: float = CENTER_CROP_WIDTH_RATIO,
+    height_ratio: float = CENTER_CROP_HEIGHT_RATIO,
+) -> np.ndarray:
+    height, width = image.shape[:2]
+    crop_width = max(1, int(width * width_ratio))
+    crop_height = max(1, int(height * height_ratio))
+    x1 = max(0, (width - crop_width) // 2)
+    y1 = max(0, (height - crop_height) // 2)
+    x2 = min(width, x1 + crop_width)
+    y2 = min(height, y1 + crop_height)
+    return image[y1:y2, x1:x2]
+
+
+def compute_blur_score(image_bytes: bytes) -> float | None:
+    image = decode_image_bytes(image_bytes)
+    if image is None:
+        return None
+
+    cropped = center_crop_image(image)
+    if cropped.size == 0:
+        return None
+
+    gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+    return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+
+
+def is_blurry_image(blur_score: float | None, *, threshold: float = DEFAULT_BLUR_THRESHOLD) -> bool | None:
+    if blur_score is None:
+        return None
+    return blur_score < threshold
 
 
 def ensure_processed_sheet(
@@ -750,6 +799,8 @@ def row_from_result(
     error_message: str,
     extracted: VoucherExtraction | None = None,
     usage: OpenAIUsage | None = None,
+    blur_score: float | None = None,
+    blurry_flag: bool | None = None,
 ) -> list[str]:
     extraction = extracted or VoucherExtraction()
     usage = usage or OpenAIUsage()
@@ -774,6 +825,8 @@ def row_from_result(
     result_map["openai_output_tokens"] = "" if usage.output_tokens is None else str(usage.output_tokens)
     result_map["openai_total_tokens"] = "" if usage.total_tokens is None else str(usage.total_tokens)
     result_map["openai_retry_count"] = str(usage.retry_count)
+    result_map["image_blur_score"] = "" if blur_score is None else f"{blur_score:.2f}"
+    result_map["image_is_blurry"] = "" if blurry_flag is None else ("yes" if blurry_flag else "no")
     result_map["processed_at_utc"] = now_utc_iso()
     result_map["status"] = status
     result_map["error_message"] = error_message
@@ -788,6 +841,8 @@ def process_submission(
     drive_file_id = submission.drive_file_id or ""
     fallback_submission_id = make_link_submission_id(submission.drive_link)
     submission_id = fallback_submission_id
+    blur_score: float | None = None
+    blurry_flag: bool | None = None
 
     try:
         if submission.drive_file_id is None:
@@ -825,8 +880,13 @@ def process_submission(
                     openai_model=config.openai_model,
                     status="duplicate_file_content",
                     error_message="This file's content matches a voucher that was already processed.",
+                    blur_score=blur_score,
+                    blurry_flag=blurry_flag,
                 )
             dedupe_state.submission_ids.add(submission_id)
+
+        blur_score = compute_blur_score(document.content)
+        blurry_flag = is_blurry_image(blur_score)
 
         extraction, usage = call_openai_extract(
             openai_client,
@@ -846,6 +906,8 @@ def process_submission(
                 error_message="Extraction succeeded but operation number is blank or unreadable.",
                 extracted=extraction,
                 usage=usage,
+                blur_score=blur_score,
+                blurry_flag=blurry_flag,
             )
 
         with dedupe_state.lock:
@@ -861,6 +923,8 @@ def process_submission(
                     ),
                     extracted=extraction,
                     usage=usage,
+                    blur_score=blur_score,
+                    blurry_flag=blurry_flag,
                 )
             dedupe_state.operation_numbers.add(normalized_operation_number)
 
@@ -873,6 +937,8 @@ def process_submission(
             error_message="",
             extracted=extraction,
             usage=usage,
+            blur_score=blur_score,
+            blurry_flag=blurry_flag,
         )
     except Exception as exc:
         retry_count = exc.retry_count if isinstance(exc, ExtractionCallError) else 0
@@ -889,6 +955,8 @@ def process_submission(
             status="processing_error",
             error_message=str(exc),
             usage=OpenAIUsage(retry_count=retry_count),
+            blur_score=blur_score,
+            blurry_flag=blurry_flag,
         )
 
 
