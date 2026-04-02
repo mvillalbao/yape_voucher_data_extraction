@@ -10,17 +10,14 @@ import numpy as np
 # Edita estos valores para probar rapido.
 IMAGE_PATH = r"C:\Users\matia\Documents\Github\yape_voucher_data_extraction\sample.jpg"
 BLUR_THRESHOLD = 200.0
-BLUR_CENTER_CROP_SPECS = [
-    (0.80, 0.80),
-    (0.65, 0.65),
-    (0.50, 0.50),
-]
-BLUR_OVERLAP_SECTOR_CROP_SPECS = [
-    ("top_left", 0.65, 0.65),
-    ("top_right", 0.65, 0.65),
-    ("bottom_left", 0.65, 0.65),
-    ("bottom_right", 0.65, 0.65),
-]
+BLUR_INNER_CROP_LEFT_RATIO = 0.10
+BLUR_INNER_CROP_RIGHT_RATIO = 0.10
+BLUR_INNER_CROP_TOP_RATIO = 0.08
+BLUR_INNER_CROP_BOTTOM_RATIO = 0.08
+BLUR_GRID_ROWS = 4
+BLUR_GRID_COLS = 3
+BLUR_WINDOW_WIDTH_RATIO = 0.55
+BLUR_WINDOW_HEIGHT_RATIO = 0.55
 
 
 def load_image(path: Path) -> np.ndarray:
@@ -30,38 +27,33 @@ def load_image(path: Path) -> np.ndarray:
     return image
 
 
-def center_crop(image: np.ndarray, width_ratio: float, height_ratio: float) -> np.ndarray:
+def crop_image_borders(image: np.ndarray) -> np.ndarray:
     height, width = image.shape[:2]
-    crop_width = max(1, int(width * width_ratio))
-    crop_height = max(1, int(height * height_ratio))
-
-    x1 = max(0, (width - crop_width) // 2)
-    y1 = max(0, (height - crop_height) // 2)
-    x2 = min(width, x1 + crop_width)
-    y2 = min(height, y1 + crop_height)
-
+    x1 = min(width - 1, max(0, int(width * BLUR_INNER_CROP_LEFT_RATIO)))
+    x2 = max(x1 + 1, min(width, int(width * (1.0 - BLUR_INNER_CROP_RIGHT_RATIO))))
+    y1 = min(height - 1, max(0, int(height * BLUR_INNER_CROP_TOP_RATIO)))
+    y2 = max(y1 + 1, min(height, int(height * (1.0 - BLUR_INNER_CROP_BOTTOM_RATIO))))
     return image[y1:y2, x1:x2]
 
 
-def overlap_sector_crop(image: np.ndarray, sector: str, width_ratio: float, height_ratio: float) -> np.ndarray:
+def generate_overlapping_grid_crops(image: np.ndarray) -> list[np.ndarray]:
     height, width = image.shape[:2]
-    crop_width = max(1, int(width * width_ratio))
-    crop_height = max(1, int(height * height_ratio))
+    window_width = max(1, int(width * BLUR_WINDOW_WIDTH_RATIO))
+    window_height = max(1, int(height * BLUR_WINDOW_HEIGHT_RATIO))
 
-    if sector == "top_left":
-        x1, y1 = 0, 0
-    elif sector == "top_right":
-        x1, y1 = max(0, width - crop_width), 0
-    elif sector == "bottom_left":
-        x1, y1 = 0, max(0, height - crop_height)
-    elif sector == "bottom_right":
-        x1, y1 = max(0, width - crop_width), max(0, height - crop_height)
-    else:
-        raise ValueError(f"Sector no soportado: {sector}")
+    max_x = max(0, width - window_width)
+    max_y = max(0, height - window_height)
 
-    x2 = min(width, x1 + crop_width)
-    y2 = min(height, y1 + crop_height)
-    return image[y1:y2, x1:x2]
+    x_positions = [int(round(value)) for value in np.linspace(0, max_x, num=max(BLUR_GRID_COLS, 1))]
+    y_positions = [int(round(value)) for value in np.linspace(0, max_y, num=max(BLUR_GRID_ROWS, 1))]
+
+    crops: list[np.ndarray] = []
+    for y1 in y_positions:
+        for x1 in x_positions:
+            x2 = min(width, x1 + window_width)
+            y2 = min(height, y1 + window_height)
+            crops.append(image[y1:y2, x1:x2])
+    return crops
 
 
 def variance_of_laplacian(image: np.ndarray) -> float:
@@ -71,22 +63,8 @@ def variance_of_laplacian(image: np.ndarray) -> float:
 
 def analyze_image(path: Path) -> tuple[float, bool, np.ndarray]:
     image = load_image(path)
-    scores: list[float] = []
-
-    for width_ratio, height_ratio in BLUR_CENTER_CROP_SPECS:
-        cropped = center_crop(image, width_ratio=width_ratio, height_ratio=height_ratio)
-        scores.append(variance_of_laplacian(cropped))
-
-    for sector, width_ratio, height_ratio in BLUR_OVERLAP_SECTOR_CROP_SPECS:
-        cropped = overlap_sector_crop(
-            image,
-            sector=sector,
-            width_ratio=width_ratio,
-            height_ratio=height_ratio,
-        )
-        scores.append(variance_of_laplacian(cropped))
-
-    representative_crop = center_crop(image, width_ratio=0.65, height_ratio=0.65)
+    representative_crop = crop_image_borders(image)
+    scores = [variance_of_laplacian(cropped) for cropped in generate_overlapping_grid_crops(representative_crop)]
     score = float(np.median(np.array(scores, dtype=np.float64)))
     is_flagged = score < BLUR_THRESHOLD
     return score, is_flagged, representative_crop

@@ -40,17 +40,14 @@ DEFAULT_MAX_WORKERS = 50
 DEFAULT_OPENAI_TIMEOUT_SECONDS = 90
 DEFAULT_OPENAI_MAX_ATTEMPTS = 8
 DEFAULT_BLUR_THRESHOLD = 200.0
-BLUR_CENTER_CROP_SPECS = [
-    (0.80, 0.80),
-    (0.65, 0.65),
-    (0.50, 0.50),
-]
-BLUR_OVERLAP_SECTOR_CROP_SPECS = [
-    ("top_left", 0.65, 0.65),
-    ("top_right", 0.65, 0.65),
-    ("bottom_left", 0.65, 0.65),
-    ("bottom_right", 0.65, 0.65),
-]
+BLUR_INNER_CROP_LEFT_RATIO = 0.10
+BLUR_INNER_CROP_RIGHT_RATIO = 0.10
+BLUR_INNER_CROP_TOP_RATIO = 0.08
+BLUR_INNER_CROP_BOTTOM_RATIO = 0.08
+BLUR_GRID_ROWS = 4
+BLUR_GRID_COLS = 3
+BLUR_WINDOW_WIDTH_RATIO = 0.55
+BLUR_WINDOW_HEIGHT_RATIO = 0.55
 
 PROCESSED_HEADERS = [
     "submission_id",
@@ -424,47 +421,47 @@ def decode_image_bytes(image_bytes: bytes) -> np.ndarray | None:
     return cv2.imdecode(buffer, cv2.IMREAD_COLOR)
 
 
-def center_crop_image(
+def crop_image_borders(
     image: np.ndarray,
     *,
-    width_ratio: float,
-    height_ratio: float,
+    left_ratio: float = BLUR_INNER_CROP_LEFT_RATIO,
+    right_ratio: float = BLUR_INNER_CROP_RIGHT_RATIO,
+    top_ratio: float = BLUR_INNER_CROP_TOP_RATIO,
+    bottom_ratio: float = BLUR_INNER_CROP_BOTTOM_RATIO,
 ) -> np.ndarray:
     height, width = image.shape[:2]
-    crop_width = max(1, int(width * width_ratio))
-    crop_height = max(1, int(height * height_ratio))
-    x1 = max(0, (width - crop_width) // 2)
-    y1 = max(0, (height - crop_height) // 2)
-    x2 = min(width, x1 + crop_width)
-    y2 = min(height, y1 + crop_height)
+    x1 = min(width - 1, max(0, int(width * left_ratio)))
+    x2 = max(x1 + 1, min(width, int(width * (1.0 - right_ratio))))
+    y1 = min(height - 1, max(0, int(height * top_ratio)))
+    y2 = max(y1 + 1, min(height, int(height * (1.0 - bottom_ratio))))
     return image[y1:y2, x1:x2]
 
 
-def overlap_sector_crop_image(
+def generate_overlapping_grid_crops(
     image: np.ndarray,
     *,
-    sector: str,
-    width_ratio: float,
-    height_ratio: float,
-) -> np.ndarray:
+    rows: int = BLUR_GRID_ROWS,
+    cols: int = BLUR_GRID_COLS,
+    window_width_ratio: float = BLUR_WINDOW_WIDTH_RATIO,
+    window_height_ratio: float = BLUR_WINDOW_HEIGHT_RATIO,
+) -> list[np.ndarray]:
     height, width = image.shape[:2]
-    crop_width = max(1, int(width * width_ratio))
-    crop_height = max(1, int(height * height_ratio))
+    window_width = max(1, int(width * window_width_ratio))
+    window_height = max(1, int(height * window_height_ratio))
 
-    if sector == "top_left":
-        x1, y1 = 0, 0
-    elif sector == "top_right":
-        x1, y1 = max(0, width - crop_width), 0
-    elif sector == "bottom_left":
-        x1, y1 = 0, max(0, height - crop_height)
-    elif sector == "bottom_right":
-        x1, y1 = max(0, width - crop_width), max(0, height - crop_height)
-    else:
-        raise ValueError(f"Unsupported crop sector: {sector}")
+    max_x = max(0, width - window_width)
+    max_y = max(0, height - window_height)
 
-    x2 = min(width, x1 + crop_width)
-    y2 = min(height, y1 + crop_height)
-    return image[y1:y2, x1:x2]
+    x_positions = [int(round(value)) for value in np.linspace(0, max_x, num=max(cols, 1))]
+    y_positions = [int(round(value)) for value in np.linspace(0, max_y, num=max(rows, 1))]
+
+    crops: list[np.ndarray] = []
+    for y1 in y_positions:
+        for x1 in x_positions:
+            x2 = min(width, x1 + window_width)
+            y2 = min(height, y1 + window_height)
+            crops.append(image[y1:y2, x1:x2])
+    return crops
 
 
 def variance_of_laplacian_score(image: np.ndarray) -> float | None:
@@ -479,25 +476,12 @@ def compute_blur_score(image_bytes: bytes) -> float | None:
     if image is None:
         return None
 
+    inner_cropped = crop_image_borders(image)
+    if inner_cropped.size == 0:
+        return None
+
     crop_scores: list[float] = []
-
-    for width_ratio, height_ratio in BLUR_CENTER_CROP_SPECS:
-        cropped = center_crop_image(
-            image,
-            width_ratio=width_ratio,
-            height_ratio=height_ratio,
-        )
-        score = variance_of_laplacian_score(cropped)
-        if score is not None:
-            crop_scores.append(score)
-
-    for sector, width_ratio, height_ratio in BLUR_OVERLAP_SECTOR_CROP_SPECS:
-        cropped = overlap_sector_crop_image(
-            image,
-            sector=sector,
-            width_ratio=width_ratio,
-            height_ratio=height_ratio,
-        )
+    for cropped in generate_overlapping_grid_crops(inner_cropped):
         score = variance_of_laplacian_score(cropped)
         if score is not None:
             crop_scores.append(score)
