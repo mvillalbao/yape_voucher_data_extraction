@@ -5,7 +5,6 @@ import hmac
 import re
 import struct
 import traceback
-from urllib.parse import urlencode
 
 import pandas as pd
 import streamlit as st
@@ -42,6 +41,18 @@ st.markdown(
         margin: 0;
         width: 100%;
         text-align: center;
+    }
+    @media (max-width: 768px) {
+        div[data-testid="stElementContainer"]:has(#manual-review-mobile-nav)
+        + div[data-testid="stHorizontalBlock"] {
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+        }
+        div[data-testid="stElementContainer"]:has(#manual-review-mobile-nav)
+        + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+            min-width: 0 !important;
+            flex: 1 1 0 !important;
+        }
     }
     </style>
     """,
@@ -481,18 +492,6 @@ def show_manual_review_dialog() -> None:
         return
 
     mobile_session = is_mobile_session()
-    nav_action = str(st.query_params.get("manual_review_nav", "")).strip().lower()
-    if mobile_session and nav_action in {"prev", "next"}:
-        base_index = int(st.session_state.get("manual_review_index", 0))
-        if nav_action == "prev":
-            st.session_state["manual_review_index"] = max(base_index - 1, 0)
-        else:
-            st.session_state["manual_review_index"] = min(base_index + 1, len(pending_rows) - 1)
-        try:
-            del st.query_params["manual_review_nav"]
-        except Exception:
-            pass
-        st.rerun()
 
     current_index = int(st.session_state.get("manual_review_index", 0))
     if current_index >= len(pending_rows):
@@ -526,17 +525,16 @@ def show_manual_review_dialog() -> None:
                             key=str(sheet_row_number),
                         )
 
-                    prev_href = build_manual_review_nav_href("prev")
-                    next_href = build_manual_review_nav_href("next")
-                    prev_disabled = current_index == 0
-                    next_disabled = current_index >= len(pending_rows) - 1
-                    render_mobile_review_nav(
-                        prev_href=prev_href,
-                        next_href=next_href,
-                        prev_disabled=prev_disabled,
-                        next_disabled=next_disabled,
-                        key=str(sheet_row_number),
-                    )
+                    st.markdown('<div id="manual-review-mobile-nav"></div>', unsafe_allow_html=True)
+                    mobile_prev, mobile_next = st.columns([1, 1], gap="small")
+                    with mobile_prev:
+                        if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
+                            st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                            st.rerun()
+                    with mobile_next:
+                        if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
+                            st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                            st.rerun()
                 else:
                     outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
                         [1.05, 0.3, 1.2, 0.3, 1.05],
