@@ -77,6 +77,30 @@ def require_login() -> None:
     st.stop()
 
 
+def is_mobile_session() -> bool:
+    context = getattr(st, "context", None)
+    headers = getattr(context, "headers", None)
+    if headers is None:
+        return False
+
+    user_agent = ""
+    try:
+        user_agent = str(headers.get("user-agent", ""))
+    except Exception:
+        user_agent = ""
+
+    if not user_agent:
+        return False
+
+    return bool(
+        re.search(
+            r"iphone|ipad|ipod|android|mobile|blackberry|opera mini|iemobile",
+            user_agent,
+            re.IGNORECASE,
+        )
+    )
+
+
 @st.dialog("Actualizacion de Google Sheets", width="large")
 def show_update_dialog() -> None:
     if st.session_state.get("execute_update", False):
@@ -390,6 +414,7 @@ def show_manual_review_dialog() -> None:
     current_row = pending_rows[current_index]
     sheet_row_number = int(current_row["_sheet_row_number"])
     current_status = str(current_row.get("status", "")).strip()
+    mobile_session = is_mobile_session()
 
     meta_left, meta_right = st.columns([2, 1])
     with meta_left:
@@ -405,8 +430,27 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                with st.container():
-                    st.markdown('<div id="manual-review-side-nav"></div>', unsafe_allow_html=True)
+                if mobile_session:
+                    image_left, image_center, image_right = st.columns([0.5, 2.4, 0.5])
+                    with image_center:
+                        render_hover_zoom_image(
+                            content=content,
+                            mime_type=mime_type,
+                            key=str(sheet_row_number),
+                        )
+
+                    nav_left, nav_center, nav_right = st.columns([1, 1.4, 1])
+                    with nav_center:
+                        mobile_prev, mobile_next = st.columns(2)
+                        with mobile_prev:
+                            if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
+                                st.session_state["manual_review_index"] = max(current_index - 1, 0)
+                                st.rerun()
+                        with mobile_next:
+                            if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
+                                st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
+                                st.rerun()
+                else:
                     outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
                         [1.05, 0.3, 1.2, 0.3, 1.05],
                         vertical_alignment="center",
@@ -427,20 +471,6 @@ def show_manual_review_dialog() -> None:
                         right_spacer, right_center, right_spacer_2 = st.columns([1, 1, 1])
                         with right_center:
                             if st.button("›", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
-                                st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
-                                st.rerun()
-
-                with st.container():
-                    st.markdown('<div id="manual-review-bottom-nav"></div>', unsafe_allow_html=True)
-                    bottom_left, bottom_center, bottom_right = st.columns([1, 2, 1])
-                    with bottom_center:
-                        mobile_prev, mobile_next = st.columns(2)
-                        with mobile_prev:
-                            if st.button("‹", key=f"manual_review_prev_mobile_{sheet_row_number}", disabled=current_index == 0, use_container_width=True):
-                                st.session_state["manual_review_index"] = max(current_index - 1, 0)
-                                st.rerun()
-                        with mobile_next:
-                            if st.button("›", key=f"manual_review_next_mobile_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1, use_container_width=True):
                                 st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
                                 st.rerun()
             else:
