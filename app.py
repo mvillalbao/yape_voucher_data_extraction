@@ -276,12 +276,13 @@ def show_manual_review_dialog() -> None:
 
     current_row = pending_rows[current_index]
     sheet_row_number = int(current_row["_sheet_row_number"])
+    current_status = str(current_row.get("status", "")).strip()
 
     meta_left, meta_right = st.columns([2, 1])
     with meta_left:
         st.caption(f"Observacion {current_index + 1} de {len(pending_rows)} pendientes")
     with meta_right:
-        st.caption(f"Estado actual: `{current_row.get('status', '') or 'sin estado'}`")
+        st.caption(f"Estado actual: `{current_status or 'sin estado'}`")
 
     file_id = str(current_row.get("voucher_drive_file_id", "")).strip()
     if file_id:
@@ -291,19 +292,15 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                left, center, right = st.columns([0.8, 2.0, 0.8], vertical_alignment="center")
+                left, center, right = st.columns([1.4, 1.2, 1.4], vertical_alignment="center")
                 with left:
-                    if st.button("❮", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
+                    if st.button("<", key=f"manual_review_prev_{sheet_row_number}", disabled=current_index == 0):
                         st.session_state["manual_review_index"] = max(current_index - 1, 0)
                         st.rerun()
                 with center:
                     st.image(content, use_container_width=True)
                 with right:
-                    if st.button(
-                        "❯",
-                        key=f"manual_review_next_{sheet_row_number}",
-                        disabled=current_index >= len(pending_rows) - 1,
-                    ):
+                    if st.button(">", key=f"manual_review_next_{sheet_row_number}", disabled=current_index >= len(pending_rows) - 1):
                         st.session_state["manual_review_index"] = min(current_index + 1, len(pending_rows) - 1)
                         st.rerun()
             else:
@@ -355,19 +352,6 @@ def show_manual_review_dialog() -> None:
             phone_or_recipient = st.text_input(
                 "Telefono o destinatario",
                 value=str(current_row.get("extracted_phone_or_recipient", "")),
-            )
-
-        current_status = str(current_row.get("status", "")).strip()
-
-        info_col1, info_col2 = st.columns([1, 2])
-        with info_col1:
-            st.text_input("Estado original", value=current_status or "sin estado", disabled=True)
-        with info_col2:
-            st.text_area(
-                "Detalle original",
-                value=str(current_row.get("error_message", "")),
-                height=68,
-                disabled=True,
             )
 
         left, center, right = st.columns([3, 1, 3])
