@@ -39,9 +39,18 @@ DEFAULT_OPENAI_MODEL = "gpt-5-mini"
 DEFAULT_MAX_WORKERS = 50
 DEFAULT_OPENAI_TIMEOUT_SECONDS = 90
 DEFAULT_OPENAI_MAX_ATTEMPTS = 8
-DEFAULT_BLUR_THRESHOLD = 100.0
-CENTER_CROP_WIDTH_RATIO = 0.60
-CENTER_CROP_HEIGHT_RATIO = 0.60
+DEFAULT_BLUR_THRESHOLD = 200.0
+BLUR_CENTER_CROP_SPECS = [
+    (0.80, 0.80),
+    (0.65, 0.65),
+    (0.50, 0.50),
+]
+BLUR_OVERLAP_SECTOR_CROP_SPECS = [
+    ("top_left", 0.65, 0.65),
+    ("top_right", 0.65, 0.65),
+    ("bottom_left", 0.65, 0.65),
+    ("bottom_right", 0.65, 0.65),
+]
 
 PROCESSED_HEADERS = [
     "submission_id",
@@ -418,8 +427,8 @@ def decode_image_bytes(image_bytes: bytes) -> np.ndarray | None:
 def center_crop_image(
     image: np.ndarray,
     *,
-    width_ratio: float = CENTER_CROP_WIDTH_RATIO,
-    height_ratio: float = CENTER_CROP_HEIGHT_RATIO,
+    width_ratio: float,
+    height_ratio: float,
 ) -> np.ndarray:
     height, width = image.shape[:2]
     crop_width = max(1, int(width * width_ratio))
@@ -431,17 +440,72 @@ def center_crop_image(
     return image[y1:y2, x1:x2]
 
 
+def overlap_sector_crop_image(
+    image: np.ndarray,
+    *,
+    sector: str,
+    width_ratio: float,
+    height_ratio: float,
+) -> np.ndarray:
+    height, width = image.shape[:2]
+    crop_width = max(1, int(width * width_ratio))
+    crop_height = max(1, int(height * height_ratio))
+
+    if sector == "top_left":
+        x1, y1 = 0, 0
+    elif sector == "top_right":
+        x1, y1 = max(0, width - crop_width), 0
+    elif sector == "bottom_left":
+        x1, y1 = 0, max(0, height - crop_height)
+    elif sector == "bottom_right":
+        x1, y1 = max(0, width - crop_width), max(0, height - crop_height)
+    else:
+        raise ValueError(f"Unsupported crop sector: {sector}")
+
+    x2 = min(width, x1 + crop_width)
+    y2 = min(height, y1 + crop_height)
+    return image[y1:y2, x1:x2]
+
+
+def variance_of_laplacian_score(image: np.ndarray) -> float | None:
+    if image.size == 0:
+        return None
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+
+
 def compute_blur_score(image_bytes: bytes) -> float | None:
     image = decode_image_bytes(image_bytes)
     if image is None:
         return None
 
-    cropped = center_crop_image(image)
-    if cropped.size == 0:
+    crop_scores: list[float] = []
+
+    for width_ratio, height_ratio in BLUR_CENTER_CROP_SPECS:
+        cropped = center_crop_image(
+            image,
+            width_ratio=width_ratio,
+            height_ratio=height_ratio,
+        )
+        score = variance_of_laplacian_score(cropped)
+        if score is not None:
+            crop_scores.append(score)
+
+    for sector, width_ratio, height_ratio in BLUR_OVERLAP_SECTOR_CROP_SPECS:
+        cropped = overlap_sector_crop_image(
+            image,
+            sector=sector,
+            width_ratio=width_ratio,
+            height_ratio=height_ratio,
+        )
+        score = variance_of_laplacian_score(cropped)
+        if score is not None:
+            crop_scores.append(score)
+
+    if not crop_scores:
         return None
 
-    gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
-    return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    return float(np.median(np.array(crop_scores, dtype=np.float64)))
 
 
 def is_blurry_image(blur_score: float | None, *, threshold: float = DEFAULT_BLUR_THRESHOLD) -> bool | None:
