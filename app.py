@@ -42,27 +42,6 @@ st.markdown(
         width: 100%;
         text-align: center;
     }
-    @media (max-width: 768px) {
-        #manual-review-nav-anchor + div [data-testid="stHorizontalBlock"] {
-            flex-wrap: wrap;
-            row-gap: 0.5rem;
-        }
-        #manual-review-nav-anchor + div [data-testid="column"]:nth-child(1) {
-            order: 2;
-            flex: 1 1 50% !important;
-            min-width: 0 !important;
-        }
-        #manual-review-nav-anchor + div [data-testid="column"]:nth-child(2) {
-            order: 1;
-            flex: 1 1 100% !important;
-            min-width: 0 !important;
-        }
-        #manual-review-nav-anchor + div [data-testid="column"]:nth-child(3) {
-            order: 3;
-            flex: 1 1 50% !important;
-            min-width: 0 !important;
-        }
-    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -426,9 +405,8 @@ def show_manual_review_dialog() -> None:
             st.warning(f"No se pudo cargar la imagen del comprobante: {exc}")
         else:
             if mime_type.startswith("image/"):
-                st.markdown('<div id="manual-review-nav-anchor"></div>', unsafe_allow_html=True)
-                left_button_col, center, right_button_col = st.columns(
-                    [0.3, 1.2, 0.3],
+                outer_left, left_button_col, center, right_button_col, outer_right = st.columns(
+                    [1.05, 0.3, 1.2, 0.3, 1.05],
                     vertical_alignment="center",
                 )
                 with left_button_col:
