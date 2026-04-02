@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import hmac
+import struct
 import re
 import traceback
 
@@ -260,10 +261,43 @@ def validate_manual_review_inputs(
     return amount, errors
 
 
+def get_image_dimensions(content: bytes, mime_type: str) -> tuple[int, int] | None:
+    try:
+        if mime_type == "image/png" and content[:8] == b"\x89PNG\r\n\x1a\n":
+            width, height = struct.unpack(">II", content[16:24])
+            return int(width), int(height)
+        if mime_type in {"image/jpeg", "image/jpg"} and content[:2] == b"\xff\xd8":
+            index = 2
+            while index < len(content):
+                if content[index] != 0xFF:
+                    index += 1
+                    continue
+                marker = content[index + 1]
+                if marker in {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}:
+                    height, width = struct.unpack(">HH", content[index + 5:index + 9])
+                    return int(width), int(height)
+                segment_length = struct.unpack(">H", content[index + 2:index + 4])[0]
+                index += 2 + segment_length
+        if mime_type == "image/gif" and content[:6] in {b"GIF87a", b"GIF89a"}:
+            width, height = struct.unpack("<HH", content[6:10])
+            return int(width), int(height)
+    except Exception:
+        return None
+    return None
+
+
 def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None:
     encoded = base64.b64encode(content).decode("utf-8")
     image_url = f"data:{mime_type};base64,{encoded}"
     container_id = f"hover-zoom-{key}"
+    dimensions = get_image_dimensions(content, mime_type)
+    frame_width = 560
+    if dimensions:
+        original_width, original_height = dimensions
+        rendered_height = int(frame_width * (original_height / max(original_width, 1)))
+    else:
+        rendered_height = 640
+    component_height = max(320, min(rendered_height + 16, 900))
     html = f"""
     <div id="{container_id}" class="hover-zoom-shell">
       <div class="hover-zoom-frame">
@@ -326,7 +360,7 @@ def render_hover_zoom_image(*, content: bytes, mime_type: str, key: str) -> None
       }})();
     </script>
     """
-    components.html(html, height=760, scrolling=False)
+    components.html(html, height=component_height, scrolling=False)
 
 
 @st.dialog("Revision manual", width="large")
