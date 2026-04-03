@@ -70,6 +70,7 @@ PROCESSED_HEADERS = [
     "openai_retry_count",
     "image_blur_score",
     "image_is_blurry",
+    "extracted_has_blank_values",
     "processed_at_utc",
     "status",
     "error_message",
@@ -498,6 +499,19 @@ def is_blurry_image(blur_score: float | None, *, threshold: float = DEFAULT_BLUR
     return blur_score < threshold
 
 
+def has_blank_extracted_values(extraction: VoucherExtraction | None) -> bool:
+    extraction = extraction or VoucherExtraction()
+    values = [
+        extraction.operation_number or "",
+        "" if extraction.amount is None else str(extraction.amount),
+        extraction.currency or "",
+        extraction.date or "",
+        extraction.time or "",
+        extraction.phone_or_recipient or "",
+    ]
+    return any(not str(value).strip() for value in values)
+
+
 def ensure_processed_sheet(
     spreadsheet: gspread.Spreadsheet,
     sheet_name: str,
@@ -852,6 +866,7 @@ def row_from_result(
 ) -> list[str]:
     extraction = extracted or VoucherExtraction()
     usage = usage or OpenAIUsage()
+    has_blank_values = has_blank_extracted_values(extraction)
     result_map = {column: "" for column in PROCESSED_HEADERS}
     result_map["submission_id"] = submission_id
     result_map["raw_row_number"] = submission.raw_row_number
@@ -875,6 +890,7 @@ def row_from_result(
     result_map["openai_retry_count"] = str(usage.retry_count)
     result_map["image_blur_score"] = "" if blur_score is None else f"{blur_score:.2f}"
     result_map["image_is_blurry"] = "" if blurry_flag is None else ("yes" if blurry_flag else "no")
+    result_map["extracted_has_blank_values"] = "yes" if has_blank_values else "no"
     result_map["processed_at_utc"] = now_utc_iso()
     result_map["status"] = status
     result_map["error_message"] = error_message
@@ -1069,6 +1085,21 @@ def count_rows_by_status(rows: list[list[str]]) -> dict[str, int]:
     return counts
 
 
+def count_rows_requiring_review(rows: list[list[str]]) -> int:
+    status_index = PROCESSED_HEADERS.index("status")
+    blurry_index = PROCESSED_HEADERS.index("image_is_blurry")
+    blank_values_index = PROCESSED_HEADERS.index("extracted_has_blank_values")
+
+    total = 0
+    for row in rows:
+        status = str(row[status_index]).strip()
+        is_blurry = str(row[blurry_index]).strip().lower() == "yes"
+        has_blank_values = str(row[blank_values_index]).strip().lower() == "yes"
+        if status == "blank_operation_number" or is_blurry or has_blank_values:
+            total += 1
+    return total
+
+
 def get_processed_worksheet(config: AppConfig) -> gspread.Worksheet:
     credentials = build_google_credentials(
         service_account_file=config.service_account_file,
@@ -1122,6 +1153,15 @@ def update_manual_review(
     row_map["extracted_date"] = date.strip()
     row_map["extracted_time"] = time_value.strip()
     row_map["extracted_phone_or_recipient"] = phone_or_recipient.strip()
+    updated_extraction = VoucherExtraction(
+        operation_number=row_map["extracted_operation_number"] or None,
+        amount=None if row_map["extracted_amount"] == "" else float(row_map["extracted_amount"]),
+        currency=row_map["extracted_currency"] or None,
+        date=row_map["extracted_date"] or None,
+        time=row_map["extracted_time"] or None,
+        phone_or_recipient=row_map["extracted_phone_or_recipient"] or None,
+    )
+    row_map["extracted_has_blank_values"] = "yes" if has_blank_extracted_values(updated_extraction) else "no"
     row_map["status"] = status.strip()
     row_map["error_message"] = error_message.strip()
     row_map["manually_reviewed"] = "yes"
@@ -1246,13 +1286,7 @@ def run_update() -> UpdateSummary:
             + status_counts.get("duplicate_invalid_link", 0)
         ),
         processing_error_rows=status_counts.get("processing_error", 0),
-        rows_requiring_review=(
-            status_counts.get("blank_operation_number", 0)
-            + status_counts.get("duplicate_operation_number", 0)
-            + status_counts.get("invalid_drive_link", 0)
-            + status_counts.get("duplicate_invalid_link", 0)
-            + status_counts.get("processing_error", 0)
-        ),
+        rows_requiring_review=count_rows_requiring_review(rows_to_append),
     )
 
 

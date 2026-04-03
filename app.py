@@ -163,6 +163,10 @@ def show_dataset_dialog() -> None:
     if df.empty:
         st.info("La base procesada todavia no tiene registros.")
     else:
+        reviewable_df = df[~df.apply(should_exclude_from_manual_review, axis=1)].copy()
+        rows_requiring_review_count = int(
+            reviewable_df.apply(lambda row: matches_manual_review_filter(row.to_dict(), "Necesita revision"), axis=1).sum()
+        )
         visible_columns = [
             "uploader_email",
             "voucher_drive_link",
@@ -183,16 +187,7 @@ def show_dataset_dialog() -> None:
             c1, c2, c3 = st.columns(3)
             c1.metric("Total de filas", dataset.total_rows)
             c2.metric("Aceptadas", int(status_counts.get("ok", 0)))
-            c3.metric(
-                "Requieren revision",
-                int(
-                    status_counts.get("blank_operation_number", 0)
-                    + status_counts.get("duplicate_operation_number", 0)
-                    + status_counts.get("invalid_drive_link", 0)
-                    + status_counts.get("duplicate_invalid_link", 0)
-                    + status_counts.get("processing_error", 0)
-                ),
-            )
+            c3.metric("Requieren revision", rows_requiring_review_count)
 
         available_statuses = sorted([status for status in df["status"].dropna().unique().tolist() if status])
         selected_statuses = st.multiselect(
@@ -244,8 +239,35 @@ def get_review_preview(file_id: str) -> tuple[str, bytes]:
     return preview.mime_type, preview.content
 
 
+def is_yes_flag(value: object) -> bool:
+    return str(value).strip().lower() in {"yes", "true", "1", "si", "sí"}
+
+
 def is_manually_reviewed(value: str) -> bool:
     return value.strip().lower() in {"yes", "true", "1", "si", "sí"}
+
+
+def should_exclude_from_manual_review(row: dict[str, object]) -> bool:
+    status = str(row.get("status", "")).strip()
+    return status == "duplicate_file_content"
+
+
+def matches_manual_review_filter(row: dict[str, object], filter_value: str) -> bool:
+    operation_blank = (
+        str(row.get("status", "")).strip() == "blank_operation_number"
+        or not str(row.get("extracted_operation_number", "")).strip()
+    )
+    blurry_image = is_yes_flag(row.get("image_is_blurry", ""))
+    has_blank_values = is_yes_flag(row.get("extracted_has_blank_values", ""))
+    needs_review = operation_blank or blurry_image or has_blank_values
+
+    if filter_value == "Codigo de operacion en blanco":
+        return operation_blank
+    if filter_value == "Imagen borrosa":
+        return blurry_image
+    if filter_value == "Todas":
+        return True
+    return needs_review
 
 
 def parse_manual_amount(raw_value: str) -> float | None:
@@ -398,9 +420,28 @@ def show_manual_review_dialog() -> None:
         st.code(traceback.format_exc(), language="text")
         st.stop()
 
-    pending_rows = [row for row in dataset.rows if not is_manually_reviewed(str(row.get("manually_reviewed", "")))]
+    filter_value = st.selectbox(
+        "Filtro de revision",
+        options=[
+            "Necesita revision",
+            "Codigo de operacion en blanco",
+            "Imagen borrosa",
+            "Todas",
+        ],
+        index=0,
+        key="manual_review_filter",
+    )
+
+    reviewable_rows = [
+        row
+        for row in dataset.rows
+        if not is_manually_reviewed(str(row.get("manually_reviewed", "")))
+        and not should_exclude_from_manual_review(row)
+    ]
+    pending_rows = [row for row in reviewable_rows if matches_manual_review_filter(row, filter_value)]
+
     if not pending_rows:
-        st.success("No hay observaciones pendientes de revision manual.")
+        st.info("No hay observaciones para el filtro seleccionado.")
         if st.button("Cerrar", use_container_width=True, key="close_manual_review_dialog_empty"):
             st.session_state["active_dialog"] = None
             st.rerun()
