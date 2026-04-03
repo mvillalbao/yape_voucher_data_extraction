@@ -77,6 +77,62 @@ PROCESSED_HEADERS = [
     "manually_reviewed",
 ]
 
+LEGACY_PROCESSED_HEADERS_PRE_MANUAL_REVIEW = [
+    "submission_id",
+    "raw_row_number",
+    "raw_timestamp",
+    "uploader_email",
+    "voucher_drive_link",
+    "voucher_drive_file_id",
+    "extracted_operation_number",
+    "extracted_amount",
+    "extracted_currency",
+    "extracted_date",
+    "extracted_time",
+    "extracted_phone_or_recipient",
+    "openai_model",
+    "openai_input_tokens",
+    "openai_cached_input_tokens",
+    "openai_output_tokens",
+    "openai_total_tokens",
+    "openai_retry_count",
+    "processed_at_utc",
+    "status",
+    "error_message",
+]
+
+LEGACY_PROCESSED_HEADERS_WITH_MANUAL_REVIEW = [
+    *LEGACY_PROCESSED_HEADERS_PRE_MANUAL_REVIEW,
+    "manually_reviewed",
+]
+
+LEGACY_PROCESSED_HEADERS_WITH_BLUR = [
+    "submission_id",
+    "raw_row_number",
+    "raw_timestamp",
+    "uploader_email",
+    "voucher_drive_link",
+    "voucher_drive_file_id",
+    "extracted_operation_number",
+    "extracted_amount",
+    "extracted_currency",
+    "extracted_date",
+    "extracted_time",
+    "extracted_phone_or_recipient",
+    "openai_model",
+    "openai_input_tokens",
+    "openai_cached_input_tokens",
+    "openai_output_tokens",
+    "openai_total_tokens",
+    "openai_retry_count",
+    "image_blur_score",
+    "image_is_blurry",
+    "processed_at_utc",
+    "status",
+    "error_message",
+    "manually_reviewed",
+]
+
 DRIVE_ID_PATTERNS = [
     re.compile(r"/d/([a-zA-Z0-9_-]+)"),
     re.compile(r"/file/d/([a-zA-Z0-9_-]+)"),
@@ -499,6 +555,29 @@ def is_blurry_image(blur_score: float | None, *, threshold: float = DEFAULT_BLUR
     return blur_score < threshold
 
 
+def normalize_processed_row_values(row_values: list[str]) -> dict[str, str]:
+    variants_by_length: dict[int, list[str]] = {
+        len(PROCESSED_HEADERS): PROCESSED_HEADERS,
+        len(LEGACY_PROCESSED_HEADERS_WITH_BLUR): LEGACY_PROCESSED_HEADERS_WITH_BLUR,
+        len(LEGACY_PROCESSED_HEADERS_WITH_MANUAL_REVIEW): LEGACY_PROCESSED_HEADERS_WITH_MANUAL_REVIEW,
+        len(LEGACY_PROCESSED_HEADERS_PRE_MANUAL_REVIEW): LEGACY_PROCESSED_HEADERS_PRE_MANUAL_REVIEW,
+    }
+
+    source_headers = variants_by_length.get(len(row_values))
+    normalized = {header: "" for header in PROCESSED_HEADERS}
+
+    if source_headers is None:
+        padded_row = row_values + [""] * max(0, len(PROCESSED_HEADERS) - len(row_values))
+        for index, header in enumerate(PROCESSED_HEADERS[: len(padded_row)]):
+            normalized[header] = padded_row[index]
+        return normalized
+
+    padded_row = row_values + [""] * max(0, len(source_headers) - len(row_values))
+    for index, header in enumerate(source_headers):
+        normalized[header] = padded_row[index]
+    return normalized
+
+
 def has_blank_extracted_values(extraction: VoucherExtraction | None) -> bool:
     extraction = extraction or VoucherExtraction()
     values = [
@@ -547,41 +626,24 @@ def get_processed_sheet_indexes(
     if len(values) <= 1:
         return set(), set(), set(), 0
 
-    header = values[0]
-    try:
-        submission_id_index = header.index("submission_id")
-    except ValueError:
-        submission_id_index = -1
-
-    try:
-        drive_file_id_index = header.index("voucher_drive_file_id")
-    except ValueError:
-        drive_file_id_index = -1
-
-    try:
-        operation_number_index = header.index("extracted_operation_number")
-    except ValueError:
-        operation_number_index = -1
-
     submission_ids: set[str] = set()
     drive_file_ids: set[str] = set()
     operation_numbers: set[str] = set()
 
     for row in values[1:]:
-        if submission_id_index != -1 and submission_id_index < len(row):
-            submission_id = row[submission_id_index].strip()
-            if submission_id:
-                submission_ids.add(submission_id)
+        row_map = normalize_processed_row_values(row)
 
-        if drive_file_id_index != -1 and drive_file_id_index < len(row):
-            drive_file_id = row[drive_file_id_index].strip()
-            if drive_file_id:
-                drive_file_ids.add(drive_file_id)
+        submission_id = row_map.get("submission_id", "").strip()
+        if submission_id:
+            submission_ids.add(submission_id)
 
-        if operation_number_index != -1 and operation_number_index < len(row):
-            normalized = normalize_operation_number(row[operation_number_index])
-            if normalized:
-                operation_numbers.add(normalized)
+        drive_file_id = row_map.get("voucher_drive_file_id", "").strip()
+        if drive_file_id:
+            drive_file_ids.add(drive_file_id)
+
+        normalized = normalize_operation_number(row_map.get("extracted_operation_number", ""))
+        if normalized:
+            operation_numbers.add(normalized)
 
     return submission_ids, drive_file_ids, operation_numbers, len(values) - 1
 
@@ -1144,8 +1206,7 @@ def update_manual_review(
 
     current_headers = processed_ws.row_values(1)
     row_values = processed_ws.row_values(sheet_row_number)
-    padded_row = row_values + [""] * (len(current_headers) - len(row_values))
-    row_map = {current_headers[index]: padded_row[index] for index in range(len(current_headers))}
+    row_map = normalize_processed_row_values(row_values)
 
     row_map["extracted_operation_number"] = operation_number.strip()
     row_map["extracted_amount"] = "" if amount is None else amount
@@ -1183,11 +1244,9 @@ def fetch_processed_dataset() -> ProcessedDatasetView:
     if len(values) <= 1:
         return ProcessedDatasetView(total_rows=0, rows=[])
 
-    headers = values[0]
     rows: list[dict[str, Any]] = []
     for sheet_row_number, row in enumerate(values[1:], start=2):
-        padded_row = row + [""] * (len(headers) - len(row))
-        row_map = {headers[index]: padded_row[index] for index in range(len(headers))}
+        row_map = normalize_processed_row_values(row)
         row_map["_sheet_row_number"] = sheet_row_number
         rows.append(row_map)
 
