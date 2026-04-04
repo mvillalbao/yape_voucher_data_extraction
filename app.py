@@ -233,6 +233,154 @@ def show_dataset_dialog() -> None:
         st.rerun()
 
 
+@st.dialog("Reporte", width="large")
+def show_report_dialog() -> None:
+    try:
+        with st.spinner("Cargando reporte..."):
+            dataset = fetch_processed_dataset()
+    except ConfigError as exc:
+        st.error(f"Error de configuracion: {exc}")
+        st.stop()
+    except Exception as exc:
+        st.error(f"No se pudo cargar el reporte: {exc}")
+        st.code(traceback.format_exc(), language="text")
+        st.stop()
+
+    df = pd.DataFrame(dataset.rows)
+    if df.empty:
+        st.info("La base procesada todavia no tiene registros.")
+        if st.button("Cerrar", use_container_width=True, key="close_report_dialog_empty"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+        return
+
+    report_df = df[df.apply(should_include_in_report, axis=1)].copy()
+    if report_df.empty:
+        st.info("No hay filas elegibles para el reporte.")
+        if st.button("Cerrar", use_container_width=True, key="close_report_dialog_no_rows"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+        return
+
+    report_df["parsed_date"] = pd.to_datetime(report_df["extracted_date"], errors="coerce").dt.date
+    report_df["parsed_amount"] = pd.to_numeric(report_df["extracted_amount"], errors="coerce")
+    report_df = report_df.dropna(subset=["parsed_date"]).copy()
+
+    if report_df.empty:
+        st.info("No hay comprobantes con fecha extraida valida para construir el reporte.")
+        if st.button("Cerrar", use_container_width=True, key="close_report_dialog_no_dates"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+        return
+
+    min_date = report_df["parsed_date"].min()
+    max_date = report_df["parsed_date"].max()
+
+    date_left, date_right = st.columns(2)
+    with date_left:
+        start_date = st.date_input(
+            "Fecha inicial",
+            value=min_date,
+            min_value=min_date,
+            max_value=max_date,
+            key="report_start_date",
+        )
+    with date_right:
+        end_date = st.date_input(
+            "Fecha final",
+            value=max_date,
+            min_value=min_date,
+            max_value=max_date,
+            key="report_end_date",
+        )
+
+    if start_date > end_date:
+        st.error("La fecha inicial no puede ser mayor que la fecha final.")
+        if st.button("Cerrar", use_container_width=True, key="close_report_dialog_invalid_dates"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+        return
+
+    interval_df = report_df[
+        (report_df["parsed_date"] >= start_date) & (report_df["parsed_date"] <= end_date)
+    ].copy()
+
+    if interval_df.empty:
+        st.info("No hay comprobantes en el intervalo seleccionado.")
+        if st.button("Cerrar", use_container_width=True, key="close_report_dialog_no_interval_rows"):
+            st.session_state["active_dialog"] = None
+            st.rerun()
+        return
+
+    amount_df = interval_df.dropna(subset=["parsed_amount"]).copy()
+    total_amount = float(amount_df["parsed_amount"].sum()) if not amount_df.empty else 0.0
+    accepted_count = int(len(interval_df))
+    average_amount = float(amount_df["parsed_amount"].mean()) if not amount_df.empty else 0.0
+    manually_reviewed_count = int(interval_df["manually_reviewed"].apply(is_manually_reviewed).sum())
+    blurry_count = int(interval_df["image_is_blurry"].apply(is_yes_flag).sum())
+    blank_values_count = int(interval_df["extracted_has_blank_values"].apply(is_yes_flag).sum())
+    blank_operation_count = int(
+        ((interval_df["status"] == "blank_operation_number") | (interval_df["extracted_operation_number"].fillna("").str.strip() == "")).sum()
+    )
+
+    daily_summary = (
+        amount_df.groupby("parsed_date", as_index=False)
+        .agg(
+            monto_total=("parsed_amount", "sum"),
+            comprobantes=("parsed_amount", "size"),
+            monto_promedio=("parsed_amount", "mean"),
+        )
+        .sort_values("parsed_date")
+    )
+
+    if not daily_summary.empty:
+        peak_row = daily_summary.loc[daily_summary["monto_total"].idxmax()]
+        peak_day_label = str(peak_row["parsed_date"])
+        peak_day_amount = float(peak_row["monto_total"])
+    else:
+        peak_day_label = "-"
+        peak_day_amount = 0.0
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Monto total del intervalo", f"S/ {total_amount:,.2f}")
+    c2.metric("Comprobantes incluidos", accepted_count)
+    c3.metric("Monto promedio", f"S/ {average_amount:,.2f}")
+    c4.metric("Dia pico", f"{peak_day_label} | S/ {peak_day_amount:,.2f}")
+
+    q1, q2, q3, q4 = st.columns(4)
+    q1.metric("Revisados manualmente", manually_reviewed_count)
+    q2.metric("Imagenes borrosas", blurry_count)
+    q3.metric("Con valores en blanco", blank_values_count)
+    q4.metric("Codigo en blanco", blank_operation_count)
+
+    if not daily_summary.empty:
+        chart_df = daily_summary.rename(columns={"parsed_date": "Fecha", "monto_total": "Monto total"}).set_index("Fecha")
+        st.line_chart(chart_df[["Monto total"]], use_container_width=True)
+
+        st.dataframe(
+            daily_summary.rename(
+                columns={
+                    "parsed_date": "Fecha",
+                    "monto_total": "Monto total",
+                    "comprobantes": "Comprobantes",
+                    "monto_promedio": "Monto promedio",
+                }
+            ),
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Monto total": st.column_config.NumberColumn("Monto total", format="%.2f"),
+                "Monto promedio": st.column_config.NumberColumn("Monto promedio", format="%.2f"),
+            },
+        )
+    else:
+        st.info("No hay montos validos en el intervalo para construir la serie diaria.")
+
+    if st.button("Cerrar", use_container_width=True, key="close_report_dialog_bottom"):
+        st.session_state["active_dialog"] = None
+        st.rerun()
+
+
 @st.cache_data(show_spinner=False, ttl=3600)
 def get_review_preview(file_id: str) -> tuple[str, bytes]:
     preview = fetch_drive_preview(file_id)
@@ -268,6 +416,13 @@ def matches_manual_review_filter(row: dict[str, object], filter_value: str) -> b
     if filter_value == "Todas":
         return True
     return needs_review
+
+
+def should_include_in_report(row: dict[str, object]) -> bool:
+    status = str(row.get("status", "")).strip()
+    if status == "duplicate_file_content":
+        return False
+    return status == "ok" or is_manually_reviewed(str(row.get("manually_reviewed", "")))
 
 
 def parse_manual_amount(raw_value: str) -> float | None:
@@ -628,6 +783,13 @@ if st.button("Ver base procesada", use_container_width=True):
 
 if st.session_state.get("active_dialog") == "dataset":
     show_dataset_dialog()
+
+if st.button("Reporte", use_container_width=True):
+    st.session_state["active_dialog"] = "report"
+    st.rerun()
+
+if st.session_state.get("active_dialog") == "report":
+    show_report_dialog()
 
 if st.button("Revision manual", use_container_width=True):
     st.session_state["active_dialog"] = "manual_review"
